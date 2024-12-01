@@ -7,6 +7,7 @@ Env.Load();
 string sessionCookie = Env.GetString("SESSION_COOKIE");
 int year = int.Parse(Env.GetString("AOC_YEAR"));
 int day = int.Parse(Env.GetString("AOC_DAY"));
+string? sample = Env.GetString("SAMPLE_FILE");
 
 var serviceProvider = new ServiceCollection()
             .AddSingleton<IDatasetReader>(provider => new DatasetReader(sessionCookie))
@@ -14,5 +15,4 @@ var serviceProvider = new ServiceCollection()
             .BuildServiceProvider();
 
 var solver = serviceProvider.GetRequiredService<AdventSolver>();
-//solver.Solve(year, day, "samples/sample01_1.txt").Wait();
-solver.Solve(year, day).Wait();
+solver.Solve(year, day, sample).Wait();
