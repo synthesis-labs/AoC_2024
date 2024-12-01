@@ -44,7 +44,8 @@ public class Day01 : BaseDay
         firstpositions.Sort();
         lastpositions.Sort();
 
-        for(var i = 0; i < firstpositions.Count(); i++)
+        var len = firstpositions.Count;
+        for (var i = 0; i < len; i++)
         {
             sum += Math.Abs(firstpositions[i] - lastpositions[i]);
         }
