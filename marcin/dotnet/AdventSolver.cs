@@ -1,4 +1,6 @@
-﻿internal class AdventSolver
+﻿using System.Diagnostics;
+
+internal class AdventSolver
 {
     private readonly IDatasetReader _datasetReader;
 
@@ -13,12 +15,18 @@
         {
             var data = await _datasetReader.ReadDatasetAsync(year, day, sample);
             var dayImpl = GetDay(day);
+            var watch = Stopwatch.StartNew();
             var part1 = await dayImpl.Part1(data);
+            watch.Stop();
+            var ms1 = watch.ElapsedMilliseconds;
+            watch.Restart();
             var part2 = await dayImpl.Part2(data);
+            watch.Stop();
+            var ms2 = watch.ElapsedMilliseconds;
             Console.WriteLine($"Day: {day}");
             Console.WriteLine($"=======");
-            Console.WriteLine($"Part 1: {part1}");
-            Console.WriteLine($"Part 2: {part2}");
+            Console.WriteLine($"Part 1: {part1} ({ms1} milliseconds)");
+            Console.WriteLine($"Part 2: {part2} ({ms2} milliseconds)");
         }
         catch (Exception ex)
         {
