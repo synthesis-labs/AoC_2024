@@ -153,6 +153,35 @@ raxBigger:
 doneSubbing:
     cmp rcx, r11
     jl part1CountLoop
+
+part2:
+    xor rcx, rcx
+    xor rdx, rdx
+    xor rbx, rbx
+    inc r11
+    sub rcx, 1
+part2Loop:
+    inc rcx
+    cmp rcx, r11
+    jge part2EndLoop
+
+    mov r10, qword [r13 + rcx * 8]
+    mov rax, r12
+    mov rdx, r11
+    mov rdi, r10
+    call countNumbers
+    
+    push rax
+    mov rax, r10
+    mov rdx, r8
+    mul rdx
+    add rbx, rax
+
+    pop rax
+    jmp part2Loop
+
+part2EndLoop:
+    
     
 exit:
     mov rax, 60
@@ -285,5 +314,28 @@ countLinesMiddle:
     
 endCountLines:
     pop rax
+    ret
+    
+countNumbers: ;rax is buffer, rdx is buffer len, rdi is number, r8 is return
+    push rcx
+    
+    xor rcx,rcx
+    xor r8, r8
+    sub rcx, 1
+countNumbersLoop:
+    inc rcx
+    cmp rcx, rdx
+    jge countNumbersEndLoop
+
+    mov r9, qword [rax + rcx *8]
+
+    cmp r9, rdi
+    jne countNumbersLoop
+
+    inc r8
+    jmp countNumbersLoop
+    
+countNumbersEndLoop:
+    pop rcx
     ret
     
