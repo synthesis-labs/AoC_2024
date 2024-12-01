@@ -1,7 +1,7 @@
 global _start
 
 section .data
-filename db "input.txt", 0
+filename db "input2.txt", 0
 newline db `\n`, 0
 numberString db "42616 "
 lenFilename equ $ -filename
@@ -38,6 +38,7 @@ _start:
     call readToBuffer
 
     mov rax, rsp
+    mov r15, rax
     call write
 ;;;;;;; test sort
 
@@ -56,8 +57,103 @@ _start:
     mov rax, numberString
     call stringToInt
 
+;;;; test count lines
+    mov rax, r15
+    call countLines
     
-   
+
+part1:
+    push    rbp
+    mov     rbp, rsp
+    sub rsp, 14000 * 2
+    mov r15, rsp ; r15 holds the file pointer
+    mov r14, r15 ; r14 holds the floating file pointer
+
+    mov rax, filename
+    mov rsi, r15
+    mov rdx, 14000 * 2
+    call readToBuffer
+
+    mov rax, r15
+    call countLines
+    
+    mov r11, rdx ; r11 holds the list len
+    shl rdx, 3
+    sub rsp, rdx
+    mov r13, rsp ; r13 holds list 1
+    sub rsp, rdx
+    mov r12, rsp ; r12 holds list 2
+    
+    xor rcx, rcx ; rcx is the loop counter
+    mov rax, r14
+part1ParseLoop:
+    push r11
+    
+    push rcx
+    call stringToInt
+    pop rcx
+    
+    mov [r13 + rcx * 8], rdx
+    add rax, 3
+    
+    push rcx
+    call stringToInt
+    add rax, 1
+    pop rcx
+    
+    mov [r12 + rcx * 8], rdx
+    pop r11
+    inc rcx
+    cmp rcx, r11
+    jge part1ParseEnd
+    jmp part1ParseLoop
+
+part1ParseEnd:
+    mov rax, r13
+    mov rdi, r11
+    push r13
+    push r12
+    push r11
+    call sort
+    pop r11
+    pop r12
+    pop r13
+
+    mov rax, r12
+    mov rdi, r11
+    push r13
+    push r12
+    push r11
+    call sort
+    pop r11
+    pop r12
+    pop r13
+
+    xor rcx, rcx
+    xor rdx, rdx
+    sub rcx, 1
+    sub r11, 1
+part1CountLoop:
+    inc rcx
+    mov rbx, [r13 + rcx * 8]
+    mov rax, [r12 + rcx * 8]
+    
+    cmp rax, rbx
+    jg raxBigger
+
+rbxBigger:
+    sub rbx, rax
+    add rdx, rbx
+    jmp doneSubbing
+    
+raxBigger:
+    sub rax, rbx
+    add rdx, rax
+    
+doneSubbing:
+    cmp rcx, r11
+    jl part1CountLoop
+    
 exit:
     mov rax, 60
     mov rdi, 0
@@ -101,6 +197,7 @@ startLoop:
 
 sort: ;rax is buffer to sort, rdi is buffer length
     push rdx
+    sub rdi, 1
     
     xor r8, r8 ; outer loop counter
     xor r9, r9 ; loop counter compare temp
@@ -144,9 +241,10 @@ endSortOuterLoop:
     pop rdx
     ret
 
-stringToInt: ;rax is start of number, rax is return
+stringToInt: ;rax is start of number, rax is new offset, rdx is return
     xor rcx,rcx
     xor rdx, rdx
+    xor rbx, rbx
     
 stringToIntMiddle:
     mov bl, byte [rax + rcx]
@@ -168,5 +266,24 @@ stringToIntMiddle:
     jmp stringToIntMiddle
     
 stringToIntDone:
-    mov rax, rdx
+    add rax, rcx
     ret
+
+countLines: ;rax is buffer, rdx is return
+    xor rcx, rcx
+    xor rdx, rdx
+    push rax
+countLinesMiddle:
+    mov cl, byte [rax]
+    inc rax
+    cmp cl, 0
+    je endCountLines
+    cmp cl, 0xa
+    jne countLinesMiddle
+    inc rdx
+    jmp countLinesMiddle
+    
+endCountLines:
+    pop rax
+    ret
+    
