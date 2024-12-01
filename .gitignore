@@ -1,0 +1,36 @@
+.vscode/launch.json
+
+pieter/2022-practice/**/.idea
+pieter/**/*.txt
+pieter/**/p*
+!pieter/**/p*.nim
+pieter/**/.nimcache
+
+.idea
+
+francoisb/.vs/*
+francoisb/**/*.txt
+francoisb/**/.vs/*
+francoisb/**/bin/*
+francoisb/**/obj/*
+
+marinda/out
+
+.clj-kondo
+.lsp
+
+.DS_Store
+
+*.vs
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
