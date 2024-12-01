@@ -1,43 +1,36 @@
-﻿namespace AoC2024
+﻿internal interface IDatasetReader
 {
-    internal interface IDatasetReader
+    Task<List<string>> ReadDatasetAsync(int year, int day, string? localFilePath);
+}
+
+internal class DatasetReader: IDatasetReader
+{
+    private readonly string _sessionCookie;
+
+    public DatasetReader(string sessionCookie)
     {
-        Task<List<string>> ReadDatasetAsync(int year, int day, string? sample);
+        _sessionCookie = sessionCookie;
     }
 
-    internal class DatasetReader: IDatasetReader
+    public async Task<List<string>> ReadDatasetAsync(int year, int day, string? localFilePath = null)
     {
-        private readonly string _sessionCookie;
-
-        public DatasetReader(string sessionCookie)
+        if (localFilePath != null)
         {
-            _sessionCookie = sessionCookie;
-        }
-
-        public async Task<List<string>> ReadDatasetAsync(int year, int day, string? sample = null)
-        {
-            if (sample != null)
-            {
-                if (File.Exists(sample))
-                {
-                    return new List<string>(File.ReadAllLines(sample));
-                }
-                else
-                {
-                    throw new FileNotFoundException($"The file {sample} does not exist.");
-                }
-            }
+            if (File.Exists(localFilePath))
+                return new List<string>(File.ReadAllLines(localFilePath));
             else
+                throw new FileNotFoundException($"The file {localFilePath} does not exist.");
+        }
+        else
+        {
+            string url = $"https://adventofcode.com/{year}/day/{day}/input";
+            using (var client = new HttpClient())
             {
-                string url = $"https://adventofcode.com/{year}/day/{day}/input";
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("Cookie", $"session={_sessionCookie}");
-                    var response = await client.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
-                    string content = await response.Content.ReadAsStringAsync();
-                    return new List<string>(content.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries));
-                }
+                client.DefaultRequestHeaders.Add("Cookie", $"session={_sessionCookie}");
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                string content = await response.Content.ReadAsStringAsync();
+                return new List<string>(content.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries));
             }
         }
     }
