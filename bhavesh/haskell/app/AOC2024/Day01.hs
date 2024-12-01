@@ -4,9 +4,11 @@ module AOC2024.Day01
   )
 where
 
-import Data.Bifunctor qualified
+import Data.Bifunctor qualified as BF
 import Data.List (sort)
 import Data.Text qualified as T
+import Text.Parsec qualified as P
+import Util.ParseHelpers (parseAoCInput)
 
 part1 :: T.Text -> Int
 part1 input = sum $ zipWith (\x y -> abs (x - y)) one two
@@ -20,7 +22,9 @@ part2 input = sum $ (\x -> occurrance x two * x) <$> one
     occurrance a = length . filter (a ==)
 
 parseLocationPairs :: T.Text -> ([Int], [Int])
-parseLocationPairs input = Data.Bifunctor.bimap sort sort . unzip $ createPairs <$> T.lines input
+parseLocationPairs input = parseAoCInput input sortedLocationPairsParser "locationPairsParser"
   where
-    splitLine l = read . T.unpack <$> T.splitOn (T.pack "   ") l
-    createPairs l = (head (splitLine l), last (splitLine l))
+    numParser = read <$> P.many1 P.digit
+    locationPairParser = (,) <$> (numParser <* P.string "   ") <*> numParser
+    locationPairsParser = P.many1 (locationPairParser <* P.optional P.newline)
+    sortedLocationPairsParser = BF.bimap sort sort . unzip <$> locationPairsParser
