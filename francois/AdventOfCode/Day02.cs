@@ -11,36 +11,32 @@ public class Day02 : BaseDay
     private string ProcessInput1(List<string> input)
     {
         int sum = 0;
-
         foreach (var line in input)
         {
             var segment = line.Split(" ");
-            var levellist = new List<int>();
             bool isAsc = false;
             bool isDesc = false;
-            for(var i = 0; i < segment.Length; i++)
+            for (var i = 0; i < segment.Length; i++)
             {
-                var current = Convert.ToInt32(segment[i]);
                 if (i == segment.Length - 1)
                 {
                     sum++;
                     break;
                 }
+                var current = Convert.ToInt32(segment[i]);
                 var next = Convert.ToInt32(segment[i + 1]);
-
-                if (current > next)
+                var diff = current - next;
+                if (diff < 4 && diff > 0)
                 {
-                    if (!isAsc && !isDesc) isAsc = true;
-
                     if (isDesc) break;
+                    else if (!isAsc && !isDesc) isAsc = true;
                 }
-                else if (current < next)
+                else if (diff < 0 && diff > -4)
                 {
-                    if (!isAsc && !isDesc) isDesc = true;
                     if (isAsc) break;
+                    else if (!isAsc && !isDesc) isDesc = true;
                 }
-                var diff = Math.Abs(current - next);
-                if (diff > 3 || diff < 1) break;
+                else break;
             }
         }
 
@@ -50,98 +46,69 @@ public class Day02 : BaseDay
     private string ProcessInput2(List<string> input)
     {
         int sum = 0;
-
         foreach (var line in input)
         {
             var segment = line.Split(" ");
-            var levellist = new List<int>();
             bool isAsc = false;
             bool isDesc = false;
             bool hasDamp = false;
-            int dampind = 0;
-            for (var i = 0; i < segment.Length; i++)
+            for (int i = 0; i < segment.Length; i++)
             {
-                var current = Convert.ToInt32(segment[i]);
                 if (i == segment.Length - 1)
                 {
                     sum++;
                     break;
                 }
+                var current = Convert.ToInt32(segment[i]);
                 var next = Convert.ToInt32(segment[i + 1]);
+                var diff = current - next;
+                if (diff < 4 && diff > 0)
+                {
+                    if (isDesc) hasDamp = true;
+                    else if (!isAsc && !isDesc) isAsc = true;
+                }
+                else if (diff < 0 && diff > -4)
+                {
+                    if (isAsc) hasDamp = true;
+                    else if (!isAsc && !isDesc) isDesc = true;
+                }
+                else hasDamp = true;
 
-                if (current > next)
-                {
-                    if (!isAsc && !isDesc) isAsc = true;
-
-                    if (isDesc)
-                    {
-                        hasDamp = true;
-                        dampind = i;
-                        break;
-                    }
-                }
-                else if (current < next)
-                {
-                    if (!isAsc && !isDesc) isDesc = true;
-                    if (isAsc) 
-                    {
-                        hasDamp = true;
-                        dampind = i;
-                        break;
-                    }
-                }
-                var diff = Math.Abs(current - next);
-                if (diff > 3 || diff < 1)
-                {
-                    hasDamp = true;
-                    dampind = i;
-                    break;
-                }
+                if (hasDamp) break;
             }
 
             if (hasDamp)
             {
-                for(var x = 0; x < segment.Length; x++)
+                for(int x = 0; x < segment.Length; x++)
                 {
                     isAsc = false;
                     isDesc = false;
                     bool canSatisfy = false;
                     var newList = new List<string>(segment);
                     newList.RemoveAt(x);
-
-                    for (var i = 0; i < newList.Count; i++)
+                    for (int i = 0; i < newList.Count; i++)
                     {
-                        var current = Convert.ToInt32(newList[i]);
                         if (i == newList.Count - 1)
                         {
                             canSatisfy = true;
                             break;
                         }
-                        var next = Convert.ToInt32(newList[i + 1]);
-
-                        if (current > next)
+                        int current = Convert.ToInt32(newList[i]);
+                        int next = Convert.ToInt32(newList[i + 1]);
+                        int diff = current - next;
+                        if (diff < 4 && diff > 0)
                         {
-                            if (!isAsc && !isDesc) isAsc = true;
-
-                            if (isDesc)
-                            {
-                                break;
-                            }
+                            if (isDesc) break;
+                            else if (!isAsc && !isDesc) isAsc = true;
                         }
-                        else if (current < next)
+                        else if (diff < 0 && diff > -4)
                         {
-                            if (!isAsc && !isDesc) isDesc = true;
-                            if (isAsc)
-                            {
-                                break;
-                            }
+                            if (isAsc) break;
+                            else if (!isAsc && !isDesc) isDesc = true;
                         }
-                        var diff = Math.Abs(current - next);
-                        if (diff > 3 || diff < 1)
-                        {
-                            break;
-                        }
+                        else break;
                     }
+
                     if (canSatisfy)
                     {
                         sum++;
