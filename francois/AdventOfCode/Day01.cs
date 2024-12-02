@@ -37,7 +37,6 @@ public class Day01 : BaseDay
 
     private string ProcessInput1(List<string> input)
     {
-        occurenceList = new Dictionary<int, int>();
         GenerateCollection(input);
         int sum = 0;
 
