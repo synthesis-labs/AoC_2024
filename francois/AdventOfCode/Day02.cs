@@ -3,12 +3,12 @@ namespace AdventOfCode;
 
 public class Day02 : BaseDay
 {
-    private readonly List<string> _input;
+    private readonly string[] _input;
     public Day02()
     {
-        _input = File.ReadAllText(InputFilePath).SplitByNewline();
+        _input = File.ReadAllLines(InputFilePath);
     }
-    private string ProcessInput1(List<string> input)
+    private string ProcessInput1(string[] input)
     {
         int sum = 0;
         foreach (var line in input)
@@ -43,7 +43,7 @@ public class Day02 : BaseDay
         return $"{sum}";
     }
 
-    private string ProcessInput2(List<string> input)
+    private string ProcessInput2(string[] input)
     {
         int sum = 0;
         foreach (var line in input)
