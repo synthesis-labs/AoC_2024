@@ -1,4 +1,4 @@
-﻿module AoC_2024.Day01
+﻿module AoC_2024.Day01.Part02
 
 open System
 
@@ -11,33 +11,50 @@ let readTabDelimitedFile (filename: string) =
             yield (int parts[0], int parts[1])
     }
 
-let data = readTabDelimitedFile("input.txt") |> Seq.toList
+// let data = readTabDelimitedFile("input.txt") |> Seq.toList
 
-// Sort each index independently
-let sortedIndex1 = data |> List.map fst |> List.sort // Extract and sort the first values
-let sortedIndex2 = data |> List.map snd |> List.sort // Extract and sort the second values
+// // Sort each index independently
+// let sortedIndex1 = data |> List.map fst |> List.sort // Extract and sort the first values
+// let sortedIndex2 = data |> List.map snd |> List.sort // Extract and sort the second values
 
-// Combine the sorted lists into tuples
-//let sortedData = List.zip sortedIndex1 sortedIndex2
+// let dupChkData = 
+//     sortedIndex1 
+//     |> List.map (fun x -> 
+//         let count = sortedIndex2 |> List.filter (fun y -> y = x) |> List.length
+//         (x, count))
+//     |> List.filter (fun (x, count) -> count > 0)
 
-// Check and return how many times sortedIndex1 value exists in sortedIndex2 
+// let similarityChk = dupChkData |> List.map (fun (x, count) -> x * count)
 
-let dupChkData = 
-    sortedIndex1 
-    |> List.map (fun x -> 
-        let count = sortedIndex2 |> List.filter (fun y -> y = x) |> List.length
-        (x, count))
-    |> List.filter (fun (x, count) -> count > 0)
+// // Add the differences for each item to give a total sum
+// let total = similarityChk |> List.sum  
 
-let similarityChk = dupChkData |> List.map (fun (x, count) -> x * count)
+// // Debugging
+// for line in dupChkData do
+//    printfn "%A" line
 
-// Add the differences for each item to give a total sum
-let total = similarityChk |> List.sum  
+// printfn "-------------"
+// printfn "%d"  total
 
-// Debugging
-for line in dupChkData do
-   printfn "%A" line
 
-printfn "-------------"
+let total = 
+    readTabDelimitedFile("input.txt")
+    |> Seq.toList
+    |> fun lst -> 
+        let sortedIndex1 = lst |> List.map fst |> List.sort
+        let sortedIndex2 = lst |> List.map snd |> List.sort
+        (sortedIndex1 , sortedIndex2)
+    |> fun (sortedIndex1, sortedIndex2) -> 
+        let dupChkData = 
+            sortedIndex1 
+            |> List.map (fun x -> 
+                let count = sortedIndex2 |> List.filter (fun y -> y = x) |> List.length
+                (x, count))
+            |> List.filter (fun (x, count) -> count > 0)
+        dupChkData
+    |> List.map (fun (x, count) -> x * count)
+    |> List.sum
+
 printfn "%d"  total
+
 
