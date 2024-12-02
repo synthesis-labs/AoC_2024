@@ -4,11 +4,11 @@ with open('input.txt', "r") as file:
 
 list_1 = []
 list_2 = []
-for x in big_list:
-    temp_array = x.split('  ')
+for x in big_list: 
     # Have to convert to integer as string is implied by default
-    list_1.append(int(temp_array[0]))
-    list_2.append(int(temp_array[1]))
+    temp_array = list(map(int, x.split('  ')))
+    list_1.append(temp_array[0])
+    list_2.append(temp_array[1])
 
 # Order lists - default is ascending order
 list_1.sort()
@@ -23,7 +23,6 @@ if (len(list_1) == len(list_2)):
         temp_distance = temp_array[1] - temp_array[0]
         distance_tracker.append(temp_distance)
     
-    print(distance_tracker)
     if len(distance_tracker) > 0:
         distance_total = 0
         for x in distance_tracker:
