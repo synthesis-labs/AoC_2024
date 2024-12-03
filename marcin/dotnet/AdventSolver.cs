@@ -14,7 +14,7 @@ internal class AdventSolver
         try
         {
             var data = await _datasetReader.ReadDatasetAsync(year, day, sample);
-            var dayImpl = GetDay(day);
+            var dayImpl = GetDay(day, data);
             var watch = Stopwatch.StartNew();
             var part1 = await dayImpl.Part1(data);
             watch.Stop();
@@ -34,12 +34,12 @@ internal class AdventSolver
         }
     }
 
-    private IDay GetDay(int day)
+    private IDay GetDay(int day, List<string> data)
     {
         return day switch
         {
             1 => new Day01(),
-            2 => new Day02(),
+            2 => new Day02(data),
             3 => new Day03(),
             4 => new Day04(),
             5 => new Day05(),

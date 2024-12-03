@@ -1,38 +1,20 @@
 ﻿internal class Day02: IDay
 {
-    public async Task<int> Part1(List<string> data)
-    {
-        var reports = data.Select(x => x.Split(" ").Select(x => int.Parse(x)).ToList()).ToList();
-        return await Task.FromResult(reports.Where(FilterLevels).Count());
-    }
+    private readonly List<List<int>> _reports;
+    public Day02(List<string> data) => _reports = data.Select(x => x.Split(" ").Select(x => int.Parse(x)).ToList()).ToList();
 
-    public async Task<int> Part2(List<string> data)
-    {
-        var reports = data.Select(x => x.Split(" ").Select(x => int.Parse(x)).ToList()).ToList();
-        var safeReports = reports.Where(levels =>
-        {
-            var isSafe = FilterLevels(levels);
-            return !isSafe ?
-                levels.Select((_, idx) => idx)
-                    .Aggregate(false, (dampened, lvlIdx) => !dampened ? FilterLevels(levels.Where((_, idx) => idx != lvlIdx).ToList()) : true)
-                : isSafe;
-        });
-        return await Task.FromResult(safeReports.Count());
-    }
+    public async Task<int> Part1(List<string> data) => _reports.Count(FilterLevels);
+
+    public async Task<int> Part2(List<string> data) => _reports.Count(levels =>  FilterLevels(levels) || levels.Select((_, idx) => idx).Aggregate(false, (dampened, lvlIdx) => dampened || FilterLevels(levels.Where((_, idx) => idx != lvlIdx).ToList())));
 
     private bool FilterLevels(List<int> levels)
     {
-        var decending = true;
-        var ascending = true;
-        var inBounds = true;
-        for (int i = 0; i < levels.Count - 1; i++)
+        var (desc, asc, limit) = levels.SkipLast(1).Select((value, index) => (index, value)).Aggregate((true, true, true), (acc, current) =>
         {
-            var (current, next) = (levels[i], levels[i + 1]);
-            var diff = Math.Abs(next - current);
-            if (current >= next) decending = false;
-            if (current <= next) ascending = false;
-            if (diff > 3) inBounds = false;
-        }
-        return inBounds && (decending || ascending);
+            var (desc, asc, limit) = acc;
+            var next = levels[current.index + 1];
+            return(desc && current.value < next, asc && current.value > next, limit && Math.Abs(next - current.value) <= 3);
+        });
+        return limit && (asc || desc);
     }
 }

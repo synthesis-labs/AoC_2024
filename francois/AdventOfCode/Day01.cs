@@ -3,16 +3,16 @@ namespace AdventOfCode;
 
 public class Day01 : BaseDay
 {
-    private readonly List<string> _input;
+    private readonly string[] _input;
     private List<int> firstpositions = new List<int>();
     private List<int> lastpositions = new List<int>();
     private Dictionary<int, int> occurenceList = new Dictionary<int, int>();
     public Day01()
     {
-        _input = File.ReadAllText(InputFilePath).SplitByNewline();
+        _input = File.ReadAllLines(InputFilePath);
     }
 
-    private void GenerateCollection(List<string> input, bool isPartTwo = false)
+    private void GenerateCollection(string[] input, bool isPartTwo = false)
     {
         firstpositions = new List<int>();
         lastpositions = new List<int>();
@@ -35,7 +35,7 @@ public class Day01 : BaseDay
         }
     }
 
-    private string ProcessInput1(List<string> input)
+    private string ProcessInput1(string[] input)
     {
         GenerateCollection(input);
         int sum = 0;
@@ -52,7 +52,7 @@ public class Day01 : BaseDay
         return $"{sum}";
     }
 
-    private string ProcessInput2(List<string> input)
+    private string ProcessInput2(string[] input)
     {
         GenerateCollection(input, true);
         int sum = 0;
