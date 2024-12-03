@@ -1,16 +1,20 @@
 ﻿internal class Day02: IDay
 {
-    public async Task<int> Part1(List<string> data)
-    {
-        int result = 0;
-            
-        return await Task.FromResult(result);
-    }
+    private readonly List<List<int>> _reports;
+    public Day02(List<string> data) => _reports = data.Select(x => x.Split(" ").Select(x => int.Parse(x)).ToList()).ToList();
 
-    public async Task<int> Part2(List<string> data)
-    {
-        int result = 0;
+    public async Task<int> Part1(List<string> data) => _reports.Count(FilterLevels);
 
-        return await Task.FromResult(result);
+    public async Task<int> Part2(List<string> data) => _reports.Count(levels =>  FilterLevels(levels) || levels.Select((_, idx) => idx).Aggregate(false, (dampened, lvlIdx) => dampened || FilterLevels(levels.Where((_, idx) => idx != lvlIdx).ToList())));
+
+    private bool FilterLevels(List<int> levels)
+    {
+        var (desc, asc, limit) = levels.SkipLast(1).Select((value, index) => (index, value)).Aggregate((true, true, true), (acc, current) =>
+        {
+            var (desc, asc, limit) = acc;
+            var next = levels[current.index + 1];
+            return(desc && current.value < next, asc && current.value > next, limit && Math.Abs(next - current.value) <= 3);
+        });
+        return limit && (asc || desc);
     }
 }
