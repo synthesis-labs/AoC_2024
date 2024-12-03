@@ -3,7 +3,7 @@ def GetNumbers():
     left = []
     right = []
 
-    f = open("input.txt", "r")
+    f = open("input2.txt", "r")
 
     for line in f:
         temp = line.split("  ")
@@ -18,19 +18,18 @@ def GetNumbers():
 
 def Solution(left, right):
     sum = 0
-    x = sorted(left)
-    y = sorted(right)
-    cnt = len(left)  
-    for i in range(cnt):
-        dist = abs( x[i] - y[i] )
-        sum+=dist
+    for i in range(len(left)):
+        count = 0
+        for num in right:
+            if num == left[i]:
+                count+=1
         
+        sum+=(left[i] * count)
+
     return sum
 
 
 
-
-      
 
 
 left, right = GetNumbers()
