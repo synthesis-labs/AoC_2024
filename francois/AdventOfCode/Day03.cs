@@ -4,20 +4,23 @@ namespace AdventOfCode;
 public class Day03 : BaseDay
 {
     private readonly string _input;
-    private readonly static Regex mulReg = new Regex(@"(mul\(\d+,\d+\))");
-    private readonly static Regex commands = new Regex(@"(mul\(\d+,\d+\)|do\(\)|don\'t\(\))");
+    private readonly static Regex mulReg = new Regex(@"(mul\(\d{1,3},\d{1,3}\))");
+    private readonly static Regex commands = new Regex(@"(mul\(\d{1,3},\d{1,3}\)|do\(\)|don\'t\(\))");
+    private readonly MatchCollection matches;
+    private readonly MatchCollection commandOrder;
 
     public Day03()
     {
         _input = File.ReadAllText(InputFilePath);
+        matches = mulReg.Matches(_input);
+        commandOrder = commands.Matches(_input);
     }
     private string ProcessInput1(string input)
     {
         int sum = 0;
-        var matches = mulReg.Matches(input);
-        foreach (var match in matches)
+        for(var i = 0; i < matches.Count; i++)
         {
-            var pattern = match.ToString();
+            var pattern = matches[i].Value;
             var split = pattern.Split(',');
             var val1 = int.Parse(split[0].Replace("mul(", ""));
             var val2 = int.Parse(split[1].Trim(')'));
@@ -29,7 +32,6 @@ public class Day03 : BaseDay
     private string ProcessInput2(string input)
     {
         int sum = 0; 
-        var commandOrder = commands.Matches(input);
         Match previousCommand = null;
         for(var i = 0; i < commandOrder.Count; i++)
         {
