@@ -13,3 +13,4 @@ day2.ExecuteDay2Part2();
 
 var day3 = new Day3();
 day3.ExecuteDay3Part1();
+day3.ExecuteDay3Part2();
