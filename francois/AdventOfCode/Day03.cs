@@ -18,7 +18,7 @@ public class Day03 : BaseDay
     private string ProcessInput1(string input)
     {
         int sum = 0;
-        for(var i = 0; i < matches.Count; i++)
+        for(int i = 0; i < matches.Count; i++)
         {
             var pattern = matches[i].Value;
             var split = pattern.Split(',');
@@ -33,7 +33,7 @@ public class Day03 : BaseDay
     {
         int sum = 0; 
         Match previousCommand = null;
-        for(var i = 0; i < commandOrder.Count; i++)
+        for(int i = 0; i < commandOrder.Count; i++)
         {
             var pattern = commandOrder[i].Value;
             bool canCompute = true;
