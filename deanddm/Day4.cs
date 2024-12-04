@@ -9,196 +9,77 @@ namespace AOC2024
     internal class Day4
     {
         String[] lines = File.ReadAllLines("input.day4.txt");
-        int occurrences = 0;
-        int masOccurrences = 0;
+        (int, int)[] Coordinates =
+        {
+                (-1, 0), (1, 0), (0, -1), (0, 1), // Vertical & Horizontal
+                (-1, -1), (-1, 1), (1, -1), (1, 1) // Diagonal
+            };
 
         internal void ExecuteDay4Part1()
         {
-            FindOccurrences();
-
+            int occurrences = CountOccurrencesOfXMAS();
             Console.WriteLine("Day 4, Part 1: " + occurrences);
         }
 
         internal void ExecuteDay4Part2()
         {
-            FindMasOccurrences();
-
-            Console.WriteLine("Day 4, Part 2: " + masOccurrences);
+            int occurrences = CountOccurrencesOfX();
+            Console.WriteLine("Day 4, Part 2: " + occurrences);
         }
 
-        private void FindOccurrences()
+        private int CountOccurrencesOfXMAS()
         {
-            for (int i = 0; i < lines.Length; i++)
+            return lines.SelectMany((line, row) =>
+                    line.SelectMany((_, col) =>
+                        Coordinates.Where(coordinate => MatchesWord(row, col, coordinate))))
+                .Count();
+        }
+
+        private bool MatchesWord(int startRow, int startColumn, (int row, int column) coordinate)
+        {
+            string word = "XMAS";
+            for (int i = 0; i < word.Length; i++)
             {
-                for (int j = 0; j < lines[i].Length; j++)
-                {
-                    if (lines[i][j] == 'X')
-                    {
-                        if (LookUp(i, j, 'M'))
-                            if (LookUp(i - 1, j, 'A'))
-                                if (LookUp(i - 2, j, 'S'))
-                                    occurrences++;
+                int nextRow = startRow + i * coordinate.row;
+                int nextColumn = startColumn + i * coordinate.column;
 
-                        if (LookUpRight(i, j, 'M'))
-                            if (LookUpRight(i - 1, j + 1, 'A'))
-                                if (LookUpRight(i - 2, j + 2, 'S'))
-                                    occurrences++;
-
-                        if (LookRight(i, j, 'M'))
-                            if (LookRight(i, j + 1, 'A'))
-                                if (LookRight(i, j + 2, 'S'))
-                                    occurrences++;
-
-                        if (LookDownRight(i, j, 'M'))
-                            if (LookDownRight(i + 1, j + 1, 'A'))
-                                if (LookDownRight(i + 2, j + 2, 'S'))
-                                    occurrences++;
-
-                        if (LookDown(i, j, 'M'))
-                            if (LookDown(i + 1, j, 'A'))
-                                if (LookDown(i + 2, j, 'S'))
-                                    occurrences++;
-
-                        if (LookDownLeft(i, j, 'M'))
-                            if (LookDownLeft(i + 1, j - 1, 'A'))
-                                if (LookDownLeft(i + 2, j - 2, 'S'))
-                                    occurrences++;
-
-                        if (LookLeft(i, j, 'M'))
-                            if (LookLeft(i, j - 1, 'A'))
-                                if (LookLeft(i, j - 2, 'S'))
-                                    occurrences++;
-
-                        if (LookUpLeft(i, j, 'M'))
-                            if (LookUpLeft(i - 1, j - 1, 'A'))
-                                if (LookUpLeft(i - 2, j - 2, 'S'))
-                                    occurrences++;
-                    }
-                }
+                if (nextRow < 0 || nextRow >= lines.Length || nextColumn < 0 || nextColumn >= lines[nextRow].Length || lines[nextRow][nextColumn] != word[i])
+                    return false;
             }
+            return true;
         }
 
-        private void FindMasOccurrences()
+        private int CountOccurrencesOfX()
         {
-            for (int i = 0; i < lines.Length; i++)
-            {
-                for (int j = 0; j < lines[i].Length; j++)
-                {
-                    if (lines[i][j] == 'A')
-                    {
-                        bool foundRight = false;
-
-                        if (LookUpRight(i, j, 'M'))
-                            if (LookDownLeft(i, j, 'S'))
-                            {
-                                foundRight = true;
-                            }
-
-                        if (LookUpRight(i, j, 'S'))
-                            if (LookDownLeft(i, j, 'M'))
-                            {
-                                foundRight = true;
-                            }
-
-                        bool foundLeft = false;
-
-                        if (LookUpLeft(i, j, 'M'))
-                            if (LookDownRight(i, j, 'S'))
-                            {
-                                foundLeft = true;
-                            }
-
-                        if (LookUpLeft(i, j, 'S'))
-                            if (LookDownRight(i, j, 'M'))
-                            {
-                                foundLeft = true;
-                            }
-
-                        if (foundLeft && foundRight)
-                            masOccurrences++;
-                    }
-                }
-            }
+            return lines.SelectMany((line, row) =>
+                    line.SelectMany((_, column) =>
+                        lines[row][column] == 'A' &&
+                        MatchesXShape(row, column) ? new[] { 1 } : Enumerable.Empty<int>()))
+                .Count();
         }
 
-        private bool LookUp(int rowNumber, int columnNumber, char character)
+        private bool MatchesXShape(int centerRow, int centerColumn)
         {
-            //Look up
-            if (rowNumber - 1 >= 0 && lines[rowNumber - 1][columnNumber] == character)
-                return true;
+            string word = "MAS";
 
-            return false;
+            bool left =
+                   (IsValidCell(centerRow - 1, centerColumn - 1) && lines[centerRow - 1][centerColumn - 1] == word[0] &&
+                   IsValidCell(centerRow + 1, centerColumn + 1) && lines[centerRow + 1][centerColumn + 1] == word[2]) ||
+                   (IsValidCell(centerRow - 1, centerColumn - 1) && lines[centerRow - 1][centerColumn - 1] == word[2] &&
+                   IsValidCell(centerRow + 1, centerColumn + 1) && lines[centerRow + 1][centerColumn + 1] == word[0]);
+
+            bool right =
+                   (IsValidCell(centerRow - 1, centerColumn + 1) && lines[centerRow - 1][centerColumn + 1] == word[0] &&
+                   IsValidCell(centerRow + 1, centerColumn - 1) && lines[centerRow + 1][centerColumn - 1] == word[2]) ||
+                   (IsValidCell(centerRow - 1, centerColumn + 1) && lines[centerRow - 1][centerColumn + 1] == word[2] &&
+                   IsValidCell(centerRow + 1, centerColumn - 1) && lines[centerRow + 1][centerColumn - 1] == word[0]);
+
+            return left && right;
         }
 
-        private bool LookUpRight(int rowNumber, int columnNumber, char character)
+        private bool IsValidCell(int row, int col)
         {
-            //Look right
-            if ((rowNumber - 1 >= 0) &&
-                (columnNumber + 1) <= (lines[rowNumber].Length - 1) &&
-                lines[rowNumber - 1][columnNumber + 1] == character)
-                return true;
-
-            return false;
-        }
-
-        private bool LookRight(int rowNumber, int columnNumber, char character)
-        {
-            //Look right
-            if ((columnNumber + 1) <= (lines[rowNumber].Length - 1) && lines[rowNumber][columnNumber + 1] == character)
-                return true;
-
-            return false;
-        }
-
-        private bool LookDownRight(int rowNumber, int columnNumber, char character)
-        {
-            //Look right
-            if (((rowNumber + 1) <= (lines.Length - 1)) &&
-                (columnNumber + 1) <= (lines[rowNumber].Length - 1) &&
-                lines[rowNumber + 1][columnNumber + 1] == character)
-                return true;
-
-            return false;
-        }
-
-        private bool LookDown(int rowNumber, int columnNumber, char character)
-        {
-            //Look down
-            if ((rowNumber + 1) <= (lines.Length - 1) && lines[rowNumber + 1][columnNumber] == character)
-                return true;
-
-            return false;
-        }
-
-        private bool LookDownLeft(int rowNumber, int columnNumber, char character)
-        {
-            //Look left
-            if (((rowNumber + 1) <= (lines.Length - 1)) &&
-                (columnNumber - 1) >= 0 &&
-                lines[rowNumber + 1][columnNumber - 1] == character)
-                return true;
-
-            return false;
-        }
-
-        private bool LookLeft(int rowNumber, int columnNumber, char character)
-        {
-            //Look left
-            if ((columnNumber - 1) >= 0 && lines[rowNumber][columnNumber - 1] == character)
-                return true;
-
-            return false;
-        }
-
-        private bool LookUpLeft(int rowNumber, int columnNumber, char character)
-        {
-            //Look left
-            if ((rowNumber - 1 >= 0) &&
-                (columnNumber - 1) >= 0 &&
-                lines[rowNumber - 1][columnNumber - 1] == character)
-                return true;
-
-            return false;
+            return row >= 0 && row < lines.Length && col >= 0 && col < lines[row].Length;
         }
     }
 }
