@@ -18,7 +18,12 @@ part1 input = countXmas' (fst <$> xs) Up grid 0
     xs = filter (\(Coord _ _, val) -> val == 'X') grid
 
 part2 :: T.Text -> Int
-part2 input = 0
+part2 input = length $ filter is3x3GridValid (build3x3Grid grid <$> as)
+  where
+    is3x3GridValid str = str `elem` valid3x3Grids
+    grid = parseGrid input
+    as = (\(Coord x y, _) -> Coord x y) <$> filter (\(Coord x y, val) -> val == 'A' && x >= 1 && y >= 1) grid
+    valid3x3Grids = ["M_M_A_S_S", "M_S_A_M_S", "S_M_A_S_M", "S_S_A_M_M"]
 
 data Coord = Coord Int Int deriving (Show)
 
@@ -41,6 +46,18 @@ data Path
   = Path [Coord]
   | NoPath
   deriving (Show)
+
+build3x3Grid :: Grid -> Coord -> String
+build3x3Grid grid (Coord x y) = strPath' grid "" deltas
+  where
+    deltas = [Coord x' y' | x' <- [x - 1 .. x + 1], y' <- [y - 1 .. y + 1]]
+
+strPath' :: Grid -> String -> [Coord] -> String
+strPath' _ acc [] = (\(i, e) -> if even i then e else '_') <$> zip [0 ..] acc
+strPath' grid acc (p : ps) =
+  case getElem p grid of
+    Just (_, val) -> strPath' grid (acc ++ [val]) ps
+    Nothing -> strPath' grid acc ps
 
 countXmas' :: [Coord] -> Direction -> Grid -> Int -> Int
 countXmas' [] _ _ acc = acc
