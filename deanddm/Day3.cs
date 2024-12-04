@@ -10,50 +10,44 @@ namespace AOC2024
     internal class Day3
     {
         String[] lines = File.ReadAllLines("input.day3.txt");
-        int total = 0;
+        Regex combinedRegex = new Regex(@"mul\(\d+,\d+\)|do(?:n't)?\(\)");
 
         internal void ExecuteDay3Part1()
         {
-            ParseInput();
-
-            Console.WriteLine("Day 3, Part 1: " + total);
+            int multiplication = PerformMultiplicationWithCommands(true);
+            Console.WriteLine("Day 3, Part 1: " + multiplication);
         }
 
-        private void ParseInput()
+        internal void ExecuteDay3Part2()
+        {
+            int multiplicationWithCommands = PerformMultiplicationWithCommands();
+            Console.WriteLine("Day 3, Part 2: " + multiplicationWithCommands);
+        }
+
+        private int PerformMultiplicationWithCommands(bool excludeCommand = false)
         {
             bool doAction = true;
-            Match? commandMatch = null;
-            foreach (var line in lines)
-            {
-                // Regular expression to match "mul(number,number)"
-                string pattern = @"mul\(\d+,\d+\)";
-
-                // Create a regex object
-                Regex regex = new Regex(pattern);
-
-                // Find all matches
-                MatchCollection matches = regex.Matches(line);
-
-                string commandPattern = @"do(?:n't)?\(\)";
-                Regex commandRegex = new Regex(commandPattern);
-                MatchCollection commandMatches = commandRegex.Matches(line);
-
-                // Output each valid "mul(number,number)" match
-                Console.WriteLine("Valid instructions:");
-                foreach (Match match in matches)
+            return lines
+                .Select(x => combinedRegex.Matches(x))
+                .Sum(x => x.Aggregate(0, (total, next) =>
                 {
-                    commandMatch = commandMatches.LastOrDefault(x => x.Index < match.Index);
-
-                    if (commandMatch != null)
-                        doAction = commandMatch.Value == "do()";
-
-                    if (doAction)
+                    if (next.Value == "do()" || next.Value == "don't()")
                     {
-                        var numberStrings = match.Value.Replace("mul(", "").Replace(")", "").Split(',');
-                        total += Int32.Parse(numberStrings[0]) * Int32.Parse(numberStrings[1]);
+                        doAction = next.Value == "do()";
+                        return total;
                     }
+
+                    return total += (excludeCommand || doAction) ?
+                        next.Value
+                        .Replace("mul(", "")
+                        .Replace(")", "")
+                        .Split(',')
+                        .Select(y => Int32.Parse(y))
+                            .ToList()
+                            .Aggregate(1, (mulTotal, mulNext) => mulTotal * mulNext)
+                        : 0;
                 }
-            }
+                ));
         }
     }
 }
