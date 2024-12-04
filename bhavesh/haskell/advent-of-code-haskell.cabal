@@ -64,6 +64,8 @@ executable advent-of-code-haskell
   -- Modules included in this executable, other than Main.
   other-modules:
     AOC2024.Day01
+    AOC2024.Day02
+    AOC2024.Day03
     AOC2024.Module
     Model
     Util.AOCHelpers

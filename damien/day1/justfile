@@ -1,0 +1,8 @@
+build:
+    # as -msyntax=intel -mnaked-reg day1.asm -o day1.o
+    nasm -felf64 -F stabs day1.asm -o day1.o
+    ld -melf_x86_64 -o day1 day1.o
+    
+
+run: build
+    ./day1
