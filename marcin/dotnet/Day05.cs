@@ -4,7 +4,7 @@
 
     public Day05(List<string> data)
     {
-        var rules = data.Where(d => d.Contains("|")).ToDictionary(d => d, d => "");
+        var rules = data.Where(d => d.Contains("|")).ToHashSet();
         var updates = data.Where(d => d.Contains(",")).Select(d => d.Split(',').Select(d => int.Parse(d)).ToList());
         var (validSum, sortedInvalidSum) = (0, 0);
         foreach (var update in updates)
@@ -16,7 +16,7 @@
                 for (int i = 0; i < update.Count; i++)
                     for (int j = i; j < update.Count; j++)
                     {
-                        if (i != j && rules.ContainsKey($"{update[j]}|{update[i]}"))
+                        if (i != j && rules.Contains($"{update[j]}|{update[i]}"))
                         {
                             isValid = isSorted = false;
                             int swap = update[j];
