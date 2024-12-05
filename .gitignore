@@ -1,0 +1,73 @@
+.vscode/launch.json
+
+pieter/2022-practice/**/.idea
+pieter/**/*.txt
+pieter/**/p*
+!pieter/**/p*.nim
+pieter/**/.nimcache
+
+.idea
+
+francoisb/.vs/*
+francoisb/**/*.txt
+francoisb/**/.vs/*
+francoisb/**/bin/*
+francoisb/**/obj/*
+
+marinda/out
+
+.clj-kondo
+.lsp
+
+.DS_Store
+
+*.vs
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+#micky-gee
+get_data.sh
+
+
+
+##template gitignore
+
+#general python
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
