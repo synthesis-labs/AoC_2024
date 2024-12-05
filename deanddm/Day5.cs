@@ -55,33 +55,30 @@ namespace AOC2024
 
         private void FindPageUpdatesThatFollowTheRules()
         {
-            foreach (var pageUpdatesList in pageUpdates)
-            {
-                bool followsTheRules = FollowsTheRules(pageUpdatesList);
+            pageUpdates
+                .Select(x => (pageUpdates: x, followsTheRules: FollowsTheRules(x)))
+                .ToList()
+                .ForEach(x =>
+                {
+                    if (x.followsTheRules)
+                        pageUpdatesThatFollowTheRules.Add(x.pageUpdates);
+                    else
+                        pageUpdatesThatDontFollowTheRules.Add(x.pageUpdates);
+                });
 
-                if (followsTheRules)
-                    pageUpdatesThatFollowTheRules.Add(pageUpdatesList);
-                else
-                    pageUpdatesThatDontFollowTheRules.Add(pageUpdatesList);
-            }
         }
 
         private bool FollowsTheRules(List<int> pageUpdatesList)
         {
             bool followsTheRules = false;
-
             for (int i = 0; i < pageUpdatesList.Count; i++)
             {
                 var pageUpdate = pageUpdatesList[i];
                 if (pageOrderingRules.ContainsKey(pageUpdate))
                 {
                     var rules = pageOrderingRules[pageUpdate];
-                    var previousPages = pageUpdatesList.Take(i + 1).ToList();
-
-                    if (previousPages.Intersect(rules).Count() == 0)
-                    {
+                    if (pageUpdatesList.Take(i + 1).Intersect(rules).Count() == 0)
                         followsTheRules = true;
-                    }
                     else
                     {
                         followsTheRules = false;
@@ -109,10 +106,8 @@ namespace AOC2024
 
                     if (intersections.Count > 0)
                     {
-                        var minIndex = intersections.Min(x => page.IndexOf(x));
-                        var indexToRemove = page.IndexOf(pageUpdate);
-                        page.RemoveAt(indexToRemove);
-                        page.Insert(minIndex, pageUpdate);
+                        page.RemoveAt(page.IndexOf(pageUpdate));
+                        page.Insert(intersections.Min(x => page.IndexOf(x)), pageUpdate);
                     }
                 }
             }
