@@ -22,4 +22,4 @@
 	(setf total (+ total (issafe (differences tmp))))))
     (print total)))
 
-;; Correct answer is 1197984
+;; Correct answer is 534
