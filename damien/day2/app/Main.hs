@@ -6,20 +6,21 @@ import Lib
 import Text.Parsec (runParser, many1, digit, newline, char, Parsec, sepBy, choice, optional, optionMaybe)
 import Text.Parsec.String (parseFromFile)
 import Text.Parsec.Token (GenTokenParser(symbol))
-import Data.List (foldr)
+import Data.List (foldr, sort, group)
+import GHC.Read (list)
 
 data IncDec = Inc
-            | Dec 
+            | Dec
             | Unknown
             | Broke 
-            deriving Eq
+            deriving (Eq, Show, Ord)
 
 main :: IO ()
 main = do
     text <- readFile "input2.txt"
     let parsed = run parseLines text
 
-    print $ part1 parsed
+    print $ length $ filter (\x -> length x == 1) $ map createListOfIncDec parsed
 
 number :: Parsec String () [Char]
 number = do
@@ -42,30 +43,6 @@ run p input =
         Left err -> error $ show err
         Right a -> a
     
--- part1 :: [[Int]] -> Int
-part1 = sum <$> map checkListMonotonic
-
-checkListMonotonic :: [Int] -> Int
-checkListMonotonic list = let (_, incDec) = foldl checkElementsMonotonic (head list, Unknown)  $ tail list
-                     in if incDec == Broke then 
-                        0
-                    else 1
-
-checkElementsMonotonic :: (Int, IncDec) -> Int ->  (Int, IncDec)
-checkElementsMonotonic (prev, acc)  curr 
-    = case acc of
-        Broke -> (curr, Broke)
-        Unknown -> (curr, checkSingleElem curr prev)
-        Inc -> notEqual curr prev Inc
-        Dec -> notEqual curr prev Dec
-        
-notEqual :: Int -> Int -> IncDec -> (Int, IncDec)
-notEqual curr prev acc = 
-    if checkSingleElem curr prev == acc then
-        (curr, acc)
-    else 
-        (curr, Broke)
-        
 checkSingleElem :: Int -> Int -> IncDec
 checkSingleElem curr prev = 
     case curr - prev of                                
@@ -74,6 +51,10 @@ checkSingleElem curr prev =
          x | x > 0 -> Inc
          _ -> error "This should not happen"
 
-                     
+getIncDecs :: Int -> Int -> (Int, IncDec)
+getIncDecs prev curr = (curr, checkSingleElem curr prev)
+         
+createListOfIncDec :: [Int] -> [(IncDec, Int)]
+createListOfIncDec list = map (\xs@(x:_) -> (x, length xs)) $ group $ sort $ zipWith checkSingleElem list (tail list)
 
-
+    
