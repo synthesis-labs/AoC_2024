@@ -24,4 +24,5 @@ day5.ExecuteDay5Part1();
 day5.ExecuteDay5Part2();
 
 var day6 = new Day6();
-day6.ExecuteDay1Part1();
+day6.ExecuteDay6Part1();
+day6.ExecuteDay6Part2(); //Disabled as it takes 56 sec to run :(
