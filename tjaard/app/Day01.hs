@@ -1,28 +1,25 @@
 module Day01 where
+import Data.List (sort)
 
-import Data.Char (isDigit)
-import Data.List (elemIndex)
-import Utils (startsWith)
-import Data.Maybe (fromMaybe)
+splitColumns :: String -> ([Int], [Int])
+splitColumns input =
+    let rows = map (map read . words) (lines input)
+    in (map head rows, map last rows)
 
-digits = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-reversedDigits = map reverse digits
+totalDifference :: [Int] -> [Int] -> Int
+totalDifference xs ys = sum $ zipWith (\x y -> abs (x - y)) xs ys
 
-getFirstDigit :: String -> [String] -> String
-getFirstDigit [] ds = ""
-getFirstDigit str@(x:xs) ds
-  | isDigit x = [x]
-  | or [startsWith digit str | digit <- ds] = show (1 + fromMaybe 0 (elemIndex True [startsWith digit str | digit <- ds]))
-  | otherwise = getFirstDigit xs ds
+countOccurrences :: Eq a => a -> [a] -> Int
+countOccurrences x = length . filter (== x)
 
-solveOne :: String -> Int
-solveOne s = read (getFirstDigit s digits ++ getFirstDigit (reverse s) reversedDigits)
+occurenceTotal :: [Int] -> [Int] -> Int
+occurenceTotal xs ys = sum [x * countOccurrences x ys | x <- xs]
 
 run :: IO ()
 run = do
-  contents1 <- lines <$> readFile "./data/day01-test"
-  contents2 <- lines <$> readFile "./data/day01-test2"
-  let answer = sum [solveOne x | x <- contents1]
-  let answer2 = sum [solveOne x | x <- contents2]
-  putStrLn $ "Answer Q1 => " ++ show answer
+  contents <- readFile "./data/day01"
+  let (left, right) = splitColumns contents
+  let answer1 = totalDifference (sort left) (sort right)
+  let answer2 = occurenceTotal left right
+  putStrLn $ "Answer Q1 => " ++ show answer1
   putStrLn $ "Answer Q2 => " ++ show answer2
