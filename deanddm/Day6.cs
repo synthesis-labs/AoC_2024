@@ -13,18 +13,14 @@ namespace AOC2024
     {
         String[] lines = File.ReadAllLines("input.day6.txt");
         char[,] map = new char[0, 0];
-        int startingRow = 0;
-        int startingColumn = 0;
-        Dictionary<(int, int), int> startingUniqueLocations = new Dictionary<(int, int), int>();
-        int loops = 0;
-        int maxLocationVisits = 0;
+        int startingRow, startingColumn, loopCount = 0;
+        HashSet<(int, int)> uniqueLocations = new HashSet<(int, int)>();
 
         internal void ExecuteDay6Part1()
         {
             ParseInput();
-            WalkTheGuard(startingUniqueLocations, null);
-            maxLocationVisits = startingUniqueLocations.Max(x => x.Value) + 1;
-            Console.WriteLine("Day 6, Part 1: " + startingUniqueLocations.Count);
+            WalkTheGuard();
+            Console.WriteLine("Day 6, Part 1: " + uniqueLocations.Count);
         }
 
         internal void ExecuteDay6Part2()
@@ -32,52 +28,51 @@ namespace AOC2024
             Stopwatch sw = Stopwatch.StartNew();
             PlaceObstaclesAndWalkTheGuard();
             sw.Stop();
-            Console.WriteLine("Day 6, Part 2: " + loops + ", in: " + sw.Elapsed);
+            Console.WriteLine("Day 6, Part 2: " + loopCount + ", Time: " + sw.Elapsed);
         }
 
         private void ParseInput()
         {
             map = new char[lines.Length, lines[0].Length];
-
             for (int i = 0; i < lines.Length; i++)
             {
                 for (int j = 0; j < lines[i].Length; j++)
                 {
-                    var character = lines[i][j];
-                    map[i, j] = character;
-
-                    if (character == '^')
+                    map[i, j] = lines[i][j];
+                    if (lines[i][j] == '^')
                     {
                         startingRow = i;
                         startingColumn = j;
+                        uniqueLocations.Add((startingRow, startingColumn));
                     }
                 }
             }
 
-            startingUniqueLocations.Add((startingRow, startingColumn), 1);
         }
 
-        private bool WalkTheGuard(Dictionary<(int, int), int> uniqueLocations, (int, int)? obstacle)
+        private bool WalkTheGuard((int, int)? obstacle = null)
         {
             bool doneWalking = false;
             (int row, int column, Direction direction) coordinate = (startingRow, startingColumn, Direction.Up);
-            
+            HashSet<(int, int, Direction)> visitedLocations = new HashSet<(int, int, Direction)> ();
+
             while (!doneWalking)
             {
                 coordinate = MoveNextPosition(coordinate, obstacle);
 
-                if (coordinate.direction == Direction.Out)
-                    doneWalking = true;
+                if (!visitedLocations.Contains(coordinate))
+                    visitedLocations.Add(coordinate);
                 else
-                {
-                    if (!uniqueLocations.ContainsKey((coordinate.row, coordinate.column)))
-                        uniqueLocations.Add((coordinate.row, coordinate.column), 1);
-                    else
-                        uniqueLocations[(coordinate.row, coordinate.column)]++;
-                }
-
-                if (obstacle != null && uniqueLocations.Any(x=> x.Value > maxLocationVisits))
                     return false;
+
+                if (coordinate.direction == Direction.Out)
+                    return true;
+
+                if (obstacle == null)
+                {
+                    if (!uniqueLocations.Contains((coordinate.row, coordinate.column)))
+                        uniqueLocations.Add((coordinate.row, coordinate.column));
+                }
             }
 
             return true;
@@ -85,20 +80,17 @@ namespace AOC2024
 
         private void PlaceObstaclesAndWalkTheGuard()
         {
-            Parallel.ForEach(startingUniqueLocations, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, (uniqueLocation) =>
+            Parallel.ForEach(uniqueLocations, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, (uniqueLocation) =>
             {
-                var (row, column) = uniqueLocation.Key;
+                var (row, column) = uniqueLocation;
                 if (row == startingRow && column == startingColumn)
                     return;
 
                 var character = map[row, column];
                 if (character == '.')
                 {
-                    Dictionary<(int, int), int> newUniqueLocations = new Dictionary<(int, int), int>() { { (startingRow, startingColumn), 1 } };
-                    var exitedTheCourse = WalkTheGuard(newUniqueLocations, uniqueLocation.Key);
-
-                    if (!exitedTheCourse)
-                        loops++;
+                    if (!WalkTheGuard(uniqueLocation))
+                        loopCount++;
                 }
             });
         }
@@ -110,7 +102,8 @@ namespace AOC2024
                 Direction.Up => (coordinate.row - 1, coordinate.column),
                 Direction.Down => (coordinate.row + 1, coordinate.column),
                 Direction.Left => (coordinate.row, coordinate.column - 1),
-                Direction.Right => (coordinate.row, coordinate.column + 1)
+                Direction.Right => (coordinate.row, coordinate.column + 1),
+                _ => throw new Exception("Not sure what to do")
             };
 
             if (OutsideBounds(nextRow, nextColumn))
@@ -147,7 +140,8 @@ namespace AOC2024
                 Direction.Up => (nextRow + 1, nextColumn, Direction.Right),
                 Direction.Down => (nextRow - 1, nextColumn, Direction.Left),
                 Direction.Left => (nextRow, nextColumn + 1, Direction.Up), 
-                Direction.Right => (nextRow, nextColumn - 1, Direction.Down)
+                Direction.Right => (nextRow, nextColumn - 1, Direction.Down),
+                _ => throw new Exception("Not sure where to go")
             };
         }
     }
