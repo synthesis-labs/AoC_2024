@@ -74,4 +74,4 @@ for i in range(len(data)):
             obstacles[i][j] = True
             # print(f"Found a valid obstacle at {i}, {j}")
 
-print(f"Part 2: {sum([sum([1 for j in i if j]) for i in obstacles])}")
+print(f"Part 2: {sum([sum(i) for i in obstacles])}")
