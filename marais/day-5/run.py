@@ -8,7 +8,7 @@ updates_input = [l.strip().split(",") for l in data if "|" not in l and len(l) >
 
 graph = {}
 for l in ordering_rules_input:
-    k, v = l.split('|')[0], l.split('|')[1]
+    k, v = l.split('|')
     # print(f"k: {k}, v: {v}")
     if k in graph:
         graph[k].append(v)
