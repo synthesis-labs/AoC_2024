@@ -14,13 +14,14 @@ public class Day06 : BaseDay
         for (var x = 0; x < _input.Length - 1; x++)
         {
             var y = _input[x].IndexOf('^');
-            if(y >= 0)
+            if (y >= 0)
             {
                 startingPosition = new(x, y);
                 break;
             }
         }
     }
+
     private string ProcessInput1(string[] input)
     {
         var currentDirection = CompassDirection.N;
@@ -94,14 +95,56 @@ public class Day06 : BaseDay
 
             previous = currentPosition;
 
-            var nextPosition = GetNextPosition(currentPosition, currentDirection);
-
-            if (!IsValidPosition(nextPosition.Item1, nextPosition.Item2, input))
+            if (currentDirection == CompassDirection.N || currentDirection == CompassDirection.S)
             {
-                break;
+                var testPosition = GetNextPosition(currentPosition, currentDirection);
+                if (!IsValidPosition(testPosition.Item1, testPosition.Item2, input))
+                {
+                    break;
+                }
+                currentPosition = testPosition;
+            }
+            else if (currentDirection == CompassDirection.E)
+            {
+                var nextPosition = input[currentPosition.Item1].AllIndexesOf("#");
+                var hash = nextPosition.Order().LastOrDefault(q => q > currentPosition.Item2);
+                if (hash > 0 && currentPosition.Item1 != x)
+                {
+                    (int, int) next = new(currentPosition.Item1, hash);
+                    previous = (next.Item1, next.Item2 - 1);
+                    currentPosition = next;
+                }
+                else
+                {
+                    var testPosition = GetNextPosition(currentPosition, currentDirection);
+                    if (!IsValidPosition(testPosition.Item1, testPosition.Item2, input))
+                    {
+                        break;
+                    }
+                    currentPosition = testPosition;
+                }
+            }
+            else
+            {
+                var nextPosition = input[currentPosition.Item1].AllIndexesOf("#");
+                var hash = nextPosition.Order().FirstOrDefault(q => q < currentPosition.Item2);
+                if (hash > 0 && currentPosition.Item1 != x)
+                {
+                    (int, int) next = new(currentPosition.Item1, hash);
+                    previous = (next.Item1, next.Item2 + 1);
+                    currentPosition = next;
+                }
+                else
+                {
+                    var testPosition = GetNextPosition(currentPosition, currentDirection);
+                    if (!IsValidPosition(testPosition.Item1, testPosition.Item2, input))
+                    {
+                        break;
+                    }
+                    currentPosition = testPosition;
+                }
             }
 
-            currentPosition = nextPosition;
         }
         return isLoop;
     }
