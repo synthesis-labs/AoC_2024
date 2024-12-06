@@ -83,15 +83,11 @@ public class Day06 : BaseDay
             if (visited.Contains((currentPosition.Item1, currentPosition.Item2, currentDirection)))
                 isLoop = true;
 
-            if (input[currentPosition.Item1][currentPosition.Item2] != '#' &&
-                !(currentPosition.Item1 == x && currentPosition.Item2 == y))
-            {
-                visited.Add((currentPosition.Item1, currentPosition.Item2, currentDirection));
-            }
 
             if (input[currentPosition.Item1][currentPosition.Item2] == '#' ||
                 (currentPosition.Item1 == x && currentPosition.Item2 == y))
             {
+                visited.Add((previous.Item1, previous.Item2, currentDirection));
                 currentPosition = previous;
                 currentDirection = TurnClockwise(currentDirection);
             }
