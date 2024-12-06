@@ -14,7 +14,7 @@ namespace AOC2024
         String[] lines = File.ReadAllLines("input.day6.txt");
         char[,] map = new char[0, 0];
         int startingRow, startingColumn, loopCount = 0;
-        HashSet<(int, int)> uniqueLocations = new HashSet<(int, int)>();
+        HashSet<(int row, int column)> uniqueLocations = new HashSet<(int, int)>();
 
         internal void ExecuteDay6Part1()
         {
@@ -47,22 +47,18 @@ namespace AOC2024
                     }
                 }
             }
-
         }
 
         private bool WalkTheGuard((int, int)? obstacle = null)
         {
-            bool doneWalking = false;
             (int row, int column, Direction direction) coordinate = (startingRow, startingColumn, Direction.Up);
-            HashSet<(int, int, Direction)> visitedLocations = new HashSet<(int, int, Direction)> ();
+            var visitedLocations = new HashSet<(int, int, Direction)>();
 
-            while (!doneWalking)
+            while (true)
             {
                 coordinate = MoveNextPosition(coordinate, obstacle);
 
-                if (!visitedLocations.Contains(coordinate))
-                    visitedLocations.Add(coordinate);
-                else
+                if (!visitedLocations.Add(coordinate))
                     return false;
 
                 if (coordinate.direction == Direction.Out)
@@ -74,24 +70,15 @@ namespace AOC2024
                         uniqueLocations.Add((coordinate.row, coordinate.column));
                 }
             }
-
-            return true;
         }
 
         private void PlaceObstaclesAndWalkTheGuard()
         {
-            Parallel.ForEach(uniqueLocations, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, (uniqueLocation) =>
+            var validLocations = uniqueLocations.Where(location => location != (startingRow, startingColumn) && map[location.row, location.column] == '.');
+            Parallel.ForEach(validLocations, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, (obstacle) =>
             {
-                var (row, column) = uniqueLocation;
-                if (row == startingRow && column == startingColumn)
-                    return;
-
-                var character = map[row, column];
-                if (character == '.')
-                {
-                    if (!WalkTheGuard(uniqueLocation))
-                        loopCount++;
-                }
+                if (!WalkTheGuard(obstacle))
+                    Interlocked.Increment(ref loopCount);
             });
         }
 
@@ -103,7 +90,7 @@ namespace AOC2024
                 Direction.Down => (coordinate.row + 1, coordinate.column),
                 Direction.Left => (coordinate.row, coordinate.column - 1),
                 Direction.Right => (coordinate.row, coordinate.column + 1),
-                _ => throw new Exception("Not sure what to do")
+                _ => throw new Exception("Not sure where to go")
             };
 
             if (OutsideBounds(nextRow, nextColumn))
@@ -126,24 +113,18 @@ namespace AOC2024
             return obstacle.HasValue && obstacle.Value.row == row && obstacle.Value.column == column;
         }
 
-        private bool OutsideBounds(int nextRow, int nextColumn)
-        {
-            if (nextRow < 0 || nextRow >= map.GetLength(0) || nextColumn < 0 || nextColumn >= map.GetLength(1))
-                return true;
-            return false;
-        }
+        private bool OutsideBounds(int nextRow, int nextColumn) =>
+            nextRow < 0 || nextRow >= map.GetLength(0) || nextColumn < 0 || nextColumn >= map.GetLength(1);
 
-        private (int row, int column, Direction newDirection) Rotate90Degrees(int nextRow, int nextColumn, Direction direction)
-        {
-            return direction switch
+        private (int row, int column, Direction newDirection) Rotate90Degrees(int nextRow, int nextColumn, Direction direction) =>
+            direction switch
             {
                 Direction.Up => (nextRow + 1, nextColumn, Direction.Right),
                 Direction.Down => (nextRow - 1, nextColumn, Direction.Left),
-                Direction.Left => (nextRow, nextColumn + 1, Direction.Up), 
+                Direction.Left => (nextRow, nextColumn + 1, Direction.Up),
                 Direction.Right => (nextRow, nextColumn - 1, Direction.Down),
-                _ => throw new Exception("Not sure where to go")
+                _ => throw new Exception("Not sure where to turn")
             };
-        }
     }
 
     internal enum Direction
