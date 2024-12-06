@@ -32,7 +32,7 @@ namespace AOC2024
             Stopwatch sw = Stopwatch.StartNew();
             PlaceObstaclesAndWalkTheGuard();
             sw.Stop();
-            Console.WriteLine("Day 6, Part 2: " + loops);
+            Console.WriteLine("Day 6, Part 2: " + loops + ", in: " + sw.Elapsed);
         }
 
         private void ParseInput()
@@ -92,7 +92,6 @@ namespace AOC2024
                     return;
 
                 var character = map[row, column];
-
                 if (character == '.')
                 {
                     Dictionary<(int, int), int> newUniqueLocations = new Dictionary<(int, int), int>() { { (startingRow, startingColumn), 1 } };
@@ -106,51 +105,25 @@ namespace AOC2024
 
         private (int row, int column, Direction direction) MoveNextPosition((int row, int column, Direction direction) coordinate, (int row, int column)? obstacle)
         {
-            char nextCharacter;
-            int nextRow;
-            int nextColumn;
-
-            switch (coordinate.direction)
+            (int nextRow, int nextColumn) = coordinate.direction switch
             {
-                case Direction.Up:
-                    nextRow = coordinate.row - 1;
-                    nextColumn = coordinate.column;
-                    if (OutsideBounds(nextRow, nextColumn))
-                        return (0, 0, Direction.Out);
-                    nextCharacter = map[nextRow, nextColumn];
-                    break;
-                case Direction.Down:
-                    nextRow = coordinate.row + 1;
-                    nextColumn = coordinate.column;
-                    if (OutsideBounds(nextRow, nextColumn))
-                        return (0, 0, Direction.Out);
-                    nextCharacter = map[nextRow, nextColumn];
-                    break;
-                case Direction.Left:
-                    nextRow = coordinate.row;
-                    nextColumn = coordinate.column - 1;
-                    if (OutsideBounds(nextRow, nextColumn))
-                        return (0, 0, Direction.Out);
-                    nextCharacter = map[nextRow, nextColumn];
-                    break;
-                case Direction.Right:
-                    nextRow = coordinate.row;
-                    nextColumn = coordinate.column + 1;
-                    if (OutsideBounds(nextRow, nextColumn))
-                        return (0, 0, Direction.Out);
-                    nextCharacter = map[nextRow, nextColumn];
-                    break;
-                default:
-                    throw new Exception("No direction to move");
-            }
+                Direction.Up => (coordinate.row - 1, coordinate.column),
+                Direction.Down => (coordinate.row + 1, coordinate.column),
+                Direction.Left => (coordinate.row, coordinate.column - 1),
+                Direction.Right => (coordinate.row, coordinate.column + 1)
+            };
 
+            if (OutsideBounds(nextRow, nextColumn))
+                return (0, 0, Direction.Out);
+
+            char nextCharacter = map[nextRow, nextColumn];
             bool isAnObstacle = IsAnObstacle(obstacle, nextRow, nextColumn);
 
             if ((nextCharacter == '.' || nextCharacter == '^') && !isAnObstacle)
                 return (nextRow, nextColumn, coordinate.direction);
 
             if (nextCharacter == '#' || isAnObstacle)
-                return (RotateRow90Degrees(coordinate.direction, nextRow), RotateColumn90Degrees(coordinate.direction, nextColumn), Rotate90Degrees(coordinate.direction));
+                return Rotate90Degrees(nextRow, nextColumn, coordinate.direction);
 
             throw new Exception("Not sure what to do");
         }
@@ -167,51 +140,15 @@ namespace AOC2024
             return false;
         }
 
-        private int RotateRow90Degrees(Direction direction, int nextRow)
+        private (int row, int column, Direction newDirection) Rotate90Degrees(int nextRow, int nextColumn, Direction direction)
         {
-            switch (direction)
+            return direction switch
             {
-                case Direction.Up:
-                    return nextRow + 1;
-                case Direction.Down:
-                    return nextRow - 1;
-                case Direction.Left:
-                case Direction.Right:
-                default:
-                    return nextRow;
-            }
-        }
-
-        private int RotateColumn90Degrees(Direction direction, int nextColumn)
-        {
-            switch (direction)
-            {
-                case Direction.Left:
-                    return nextColumn + 1;
-                case Direction.Right:
-                    return nextColumn - 1;
-                case Direction.Up:
-                case Direction.Down:
-                default:
-                    return nextColumn;
-            }
-        }
-
-        private Direction Rotate90Degrees(Direction direction)
-        {
-            switch (direction)
-            {
-                case Direction.Up:
-                    return Direction.Right;
-                case Direction.Down:
-                    return Direction.Left;
-                case Direction.Left:
-                    return Direction.Up;
-                case Direction.Right:
-                    return Direction.Down;
-                default:
-                    throw new Exception("No direction to rotate");
-            }
+                Direction.Up => (nextRow + 1, nextColumn, Direction.Right),
+                Direction.Down => (nextRow - 1, nextColumn, Direction.Left),
+                Direction.Left => (nextRow, nextColumn + 1, Direction.Up), 
+                Direction.Right => (nextRow, nextColumn - 1, Direction.Down)
+            };
         }
     }
 
