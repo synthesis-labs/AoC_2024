@@ -43,7 +43,7 @@ internal class AdventSolver
             3 => new Day03(),
             4 => new Day04(),
             5 => new Day05(data),
-            6 => new Day06(),
+            6 => new Day06(data),
             7 => new Day07(),
             8 => new Day08(),
             9 => new Day09(),

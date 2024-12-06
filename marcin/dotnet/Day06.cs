@@ -1,48 +1,9 @@
-﻿using System;
-using System.Xml.Schema;
-
-internal class Day06 : IDay
+﻿internal class Day06 : IDay
 {
-    public async Task<int> Part1(List<string> data)
+    private readonly Tuple<int, int> _results;
+    public Day06(List<string> data)
     {
-        return -1;
         var tiles = data.Select((d, dy) => d.Select((d, dx) => new Tile { x = dx, y = dy, isObstruciton = d == '#', visited = d == '^' })).SelectMany(t => t).ToList();
-        var ybound = data.Count;
-        var xbound = data.First().Length;
-        var obs = tiles.Where(t => t.isObstruciton).ToList();
-
-        var guard = tiles.Where(t => t.visited).First();
-        var (dirx, diry) = (0, -1);
-        bool outside = false;
-
-        var (gx, gy) = (guard.x, guard.y);
-        do
-        {
-            var gTile = tiles.Where((t) => t.x == gx && t.y == gy).First();
-            gTile.visited = true;
-            
-            var nextTile = tiles.Where((t) => t.x == gx + dirx && t.y == gy + diry).First();
-            if (nextTile.isObstruciton)
-            {
-                if (diry == -1) { dirx = 1; diry = 0; }
-                else if (diry == 1) { dirx = -1; diry = 0; }
-                else if (dirx == -1) { dirx = 0; diry = -1; }
-                else if (dirx == 1) { dirx = 0; diry = 1; }
-            } else
-            {
-                gx += dirx;
-                gy += diry;
-            }
-            outside = gx + dirx >= xbound || gy + diry >= ybound || gx + dirx < 0 || gy + diry < 0;
-
-        } while (!outside);
-
-        return tiles.Where(t => t.visited == true).Count() + 1; //visitedList.Count + 1;
-    }
-
-    public async Task<int> Part2(List<string> data)
-    {
-        var tiles = data.Select((d, dy) => d.Select((d, dx) => new Tile { x = dx, y = dy, isObstruciton = d == '#', visited = d == '^', valid = true })).SelectMany(t => t).ToList();
         var ybound = data.Count;
         var xbound = data.First().Length;
         var obs = tiles.Where(t => t.isObstruciton).ToList();
@@ -67,6 +28,7 @@ internal class Day06 : IDay
             }
             else
             {
+                nextTile.visited = true;
                 gx += dirx;
                 gy += diry;
             }
@@ -74,58 +36,52 @@ internal class Day06 : IDay
 
         } while (!outside);
 
-        var vcoutn = tiles.Where(t => t.visited).Count();
         int count = 0;
-        foreach (var obsTile in tiles.Where(t => !t.isObstruciton))
+        int currentIdx = 0;
+        foreach (var placedObs in tiles.Where(t => t.visited).ToList())
         {
-            var cornerUp = obs.Where(o => o.x == obsTile.x + 1 && o.y < obsTile.y).OrderByDescending(o => o.y).FirstOrDefault();
-            var cornerRight = obs.Where(o => o.y == obsTile.y + 1 && o.x > obsTile.x).OrderBy(o => o.x).FirstOrDefault();
-            var cornerDown = obs.Where(o => o.x == obsTile.x - 1 && o.y > obsTile.y).OrderBy(o => o.y).FirstOrDefault();
-            var cornerLeft = obs.Where(o => o.y == obsTile.y - 1 && o.x < obsTile.x).OrderByDescending(o => o.x).FirstOrDefault();
-            if (cornerUp != null && cornerRight != null)
+            currentIdx++;
+            foreach (var item in tiles)
             {
-                var oppositeCorner = obs.Where(o => o.x == cornerRight.x + 1 && o.y == cornerUp.y + 1).FirstOrDefault();
-                if (oppositeCorner != null)
-                {
-                    var t = tiles.Where(t => t.x == obsTile.x + 1 && t.y == obsTile.y).First();
-                    count += t.visited ? 1 : 0;
-                }
-                //count += oppositeCorner != null ? 1 : 0;
+                item.bottomHit = 0;
+                item.leftHit = 0;
+                item.rightHit = 0;
+                item.topHit = 0;
             }
-            if (cornerRight != null && cornerDown != null)
+            bool noloop = true;
+            bool inside = true;
+            placedObs.isObstruciton = true;
+            (gx, gy) = (guard.x, guard.y);
+            (dirx, diry) = (0, -1);
+
+            do
             {
-                var oppositeCorner = obs.Where(o => o.x == cornerRight.x - 1 && o.y == cornerDown.y + 1).FirstOrDefault();
-                if (oppositeCorner != null)
+                var gTile = tiles.Where((t) => t.x == gx && t.y == gy).First();
+                var nextTile = tiles.Where((t) => t.x == gx + dirx && t.y == gy + diry).First();
+                if (nextTile.isObstruciton)
                 {
-                    var t = tiles.Where(t => t.x == obsTile.x && t.y == obsTile.y + 1).First();
-                    count += t.visited ? 1 : 0;
+                    if (diry == -1) { dirx = 1; diry = 0; nextTile.bottomHit++; noloop = noloop && nextTile.bottomHit < 2; }
+                    else if (diry == 1) { dirx = -1; diry = 0; nextTile.topHit++; noloop = noloop && nextTile.topHit < 2; }
+                    else if (dirx == -1) { dirx = 0; diry = -1; nextTile.rightHit++; noloop = noloop && nextTile.rightHit < 2; }
+                    else if (dirx == 1) { dirx = 0; diry = 1; nextTile.leftHit++; noloop = noloop && nextTile.leftHit < 2; }
                 }
-                //count += oppositeCorner != null ? 1 : 0;
-            }
-            if (cornerDown != null && cornerLeft != null)
-            {
-                var oppositeCorner = obs.Where(o => o.x == cornerLeft.x - 1 && o.y == cornerDown.y - 1).FirstOrDefault();
-                if (oppositeCorner != null)
+                else
                 {
-                    var t = tiles.Where(t => t.x == obsTile.x - 1 && t.y == obsTile.y).First();
-                    count += t.visited ? 1 : 0;
+                    gx += dirx;
+                    gy += diry;
                 }
-                //count += oppositeCorner != null ? 1 : 0;
-            }
-            if (cornerLeft != null && cornerUp != null)
-            {
-                var oppositeCorner = obs.Where(o => o.x == cornerLeft.x + 1 && o.y == cornerUp.y - 1).FirstOrDefault();
-                if (oppositeCorner != null)
-                {
-                    var t = tiles.Where(t => t.x == obsTile.x && t.y == obsTile.y - 1).First();
-                    count += t.visited ? 1 : 0;
-                }
-                //count += oppositeCorner != null ? 1 : 0;
-            }
+                inside = !(gx + dirx >= xbound || gy + diry >= ybound || gx + dirx < 0 || gy + diry < 0);
+
+            } while (inside && noloop);
+            count += noloop ? 0 : 1;
+            placedObs.isObstruciton = false;
         }
-        
-        return count;
+        _results = new Tuple<int, int>(tiles.Where(t => t.visited).Count(), count);
     }
+
+    public async Task<int> Part1(List<string> data) => _results.Item1;
+
+    public async Task<int> Part2(List<string> data) => _results.Item2;
 
     class Tile
     {
@@ -133,6 +89,9 @@ internal class Day06 : IDay
         public int y { get; set; }
         public bool isObstruciton { get; set; }
         public bool visited { get; set; }
-        public bool valid { get; set; }
+        public int topHit { get; set; }
+        public int bottomHit { get; set; }
+        public int leftHit { get; set; }
+        public int rightHit { get; set; }
     }
 }
