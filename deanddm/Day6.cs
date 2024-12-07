@@ -108,10 +108,8 @@ namespace AOC2024
             throw new Exception("Not sure what to do");
         }
 
-        private bool IsAnObstacle((int row, int column)? obstacle, int row, int column)
-        {
-            return obstacle.HasValue && obstacle.Value.row == row && obstacle.Value.column == column;
-        }
+        private bool IsAnObstacle((int row, int column)? obstacle, int row, int column) =>
+            obstacle.HasValue && obstacle.Value.row == row && obstacle.Value.column == column;
 
         private bool OutsideBounds(int nextRow, int nextColumn) =>
             nextRow < 0 || nextRow >= map.GetLength(0) || nextColumn < 0 || nextColumn >= map.GetLength(1);
