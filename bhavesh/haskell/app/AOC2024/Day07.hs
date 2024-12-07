@@ -4,34 +4,38 @@ module AOC2024.Day07
   )
 where
 
-import Control.Monad (replicateM, when)
-import Data.List (intersperse, singleton)
+import Control.Monad (replicateM)
 import Data.Text qualified as T
 import Text.Parsec qualified as P
 import Util.ParseHelpers (parseAoCInput)
 
 part1 :: T.Text -> Int
-part1 input = sum $ (\(Equation r _) -> r) <$> filter evalEquation equations
+part1 input = sum $ (\(Equation r _) -> r) <$> filter (evalEquation False) equations
   where
     equations = parseEquations input
 
 part2 :: T.Text -> Int
-part2 input = 0
+part2 input = sum $ (\(Equation r _) -> r) <$> filter (evalEquation True) equations
+  where
+    equations = parseEquations input
 
 data Equation = Equation Int [Int] deriving (Show, Eq, Ord)
 
-evalEquation :: Equation -> Bool
-evalEquation (Equation result numbers) = result `elem` possibleResults
+evalEquation :: Bool -> Equation -> Bool
+evalEquation isPart2 (Equation result numbers) = result `elem` possibleResults
   where
-    possibleResults = evaluate <$> intersperseCombinations ["+", "*"] (show <$> numbers)
+    delims = if isPart2 then ["+", "*", "|"] else ["+", "*"]
+    possibleResults = evaluate <$> intersperseCombinations delims (show <$> numbers)
 
 evaluate :: [String] -> Int
 evaluate tokens = go tokens 0
   where
     go [] acc = acc
     go [x] acc = acc + read x -- Add the last number
-    go (x : "+" : y : xs) acc = go (show (read x + read y) : xs) acc
-    go (x : "*" : y : xs) acc = go (show (read x * read y) : xs) acc
+    go (x : "+" : y : xs) acc = go (show ((read x :: Int) + (read y :: Int)) : xs) acc
+    go (x : "*" : y : xs) acc = go (show ((read x :: Int) * (read y :: Int)) : xs) acc
+    go (x : "|" : y : xs) acc = go ((x ++ y) : xs) acc
+    go _ _ = error "Invalid equation"
 
 intersperseCombinations :: [String] -> [String] -> [[String]]
 intersperseCombinations delimiters input = map (merge input) combinations
@@ -39,7 +43,7 @@ intersperseCombinations delimiters input = map (merge input) combinations
     n = length input - 1
     combinations = replicateM n delimiters
     merge [] _ = []
-    merge (x : xs) [] = [x]
+    merge (x : _) [] = [x]
     merge (x : xs) (d : ds) = x : d : merge xs ds
 
 parseEquations :: T.Text -> [Equation]
