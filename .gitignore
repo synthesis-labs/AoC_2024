@@ -16,6 +16,8 @@ francoisb/**/obj/*
 
 marinda/out
 
+marais/**/*.txt
+
 .clj-kondo
 .lsp
 
