@@ -65,7 +65,7 @@ def get_loop_locations(grid, start_y, start_x, start_dir=0) -> Set[Tuple[int, ..
 
     loop_locations = set()
     for j in range(grid.shape[0]):
-        print(f"Doing row {j+1} of {grid.shape[0]}")
+        # print(f"Doing row {j+1} of {grid.shape[0]}")
         for i in range(grid.shape[1]):
             if grid[j, i] != ".":
                 continue
