@@ -13,12 +13,7 @@
             var (diffX, diffY) = (first.x - second.x, first.y - second.y);
             var (cx, cy) = (first.x + diffX, first.y + diffY);
             if (cx >= 0 && cy >= 0 && cx < boundX && cy < boundY) antinodes.Add($"{cx}:{cy}");
-            while (cx >= 0 && cy >= 0 && cx < boundX && cy < boundY)
-            {
-                harmonics.Add($"{cx}:{cy}");
-                cx += diffX;
-                cy += diffY;
-            }
+            while (cx >= 0 && cy >= 0 && cx < boundX && cy < boundY) { harmonics.Add($"{cx}:{cy}"); (cx, cy) = (cx + diffX, cy + diffY); }
         }
         antennas.Where(a => a.Count() > 1).SelectMany(a => a).ToList().ForEach(a => harmonics.Add($"{a.x}:{a.y}"));
         return (antinodes.Count(), harmonics.Count());
