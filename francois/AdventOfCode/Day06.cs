@@ -37,7 +37,7 @@ public class Day06 : BaseDay
             if (input[nextPosition.Item1][nextPosition.Item2] == '#')
             {
                 nextPosition = previous;
-                currentDirection = TurnClockwise(currentDirection);
+                currentDirection = currentDirection.Turn("cw");
             }
             else
             {
@@ -83,17 +83,13 @@ public class Day06 : BaseDay
             if (visited.Contains((currentPosition.Item1, currentPosition.Item2, currentDirection)))
                 isLoop = true;
 
-            if (input[currentPosition.Item1][currentPosition.Item2] != '#' &&
-                !(currentPosition.Item1 == x && currentPosition.Item2 == y))
-            {
-                visited.Add((currentPosition.Item1, currentPosition.Item2, currentDirection));
-            }
 
             if (input[currentPosition.Item1][currentPosition.Item2] == '#' ||
                 (currentPosition.Item1 == x && currentPosition.Item2 == y))
             {
+                visited.Add((previous.Item1, previous.Item2, currentDirection));
                 currentPosition = previous;
-                currentDirection = TurnClockwise(currentDirection);
+                currentDirection = currentDirection.Turn("cw");
             }
 
             previous = currentPosition;
@@ -108,17 +104,6 @@ public class Day06 : BaseDay
             currentPosition = nextPosition;
         }
         return isLoop;
-    }
-
-    private CompassDirection TurnClockwise(CompassDirection currentDirection)
-    {
-        return currentDirection switch
-        {
-            CompassDirection.N => CompassDirection.E,
-            CompassDirection.E => CompassDirection.S,
-            CompassDirection.S => CompassDirection.W,
-            CompassDirection.W => CompassDirection.N,
-        };
     }
 
     private (int, int) GetNextPosition((int, int) currentPosition, CompassDirection currentDirection)

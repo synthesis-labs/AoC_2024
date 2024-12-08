@@ -16,6 +16,8 @@ francoisb/**/obj/*
 
 marinda/out
 
+marais/**/*.txt
+
 .clj-kondo
 .lsp
 
@@ -71,3 +73,4 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+deanddm/*.txt

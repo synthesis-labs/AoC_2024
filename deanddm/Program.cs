@@ -24,4 +24,13 @@ day5.ExecuteDay5Part1();
 day5.ExecuteDay5Part2();
 
 var day6 = new Day6();
-day6.ExecuteDay1Part1();
+day6.ExecuteDay6Part1();
+//day6.ExecuteDay6Part2(); //Exclude for performance 460ms
+
+var day7 = new Day7();
+day7.ExecuteDay7Part1();
+//day7.ExecuteDay7Part2(); //Exclude for performance 1300ms
+
+var day8 = new Day8();
+day8.ExecuteDay8Part1();
+day8.ExecuteDay1Part2();
