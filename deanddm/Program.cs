@@ -36,5 +36,5 @@ day8.ExecuteDay8Part1();
 day8.ExecuteDay1Part2();
 
 var day9 = new Day9();
-day9.ExecuteDay9Part1();
-day9.ExecuteDay9Part2();
+//day9.ExecuteDay9Part1(); //Exclude for performance
+//day9.ExecuteDay9Part2(); //Exclude for performance
