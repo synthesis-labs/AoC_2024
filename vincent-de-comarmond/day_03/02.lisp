@@ -26,7 +26,7 @@
 
     ((eql char #\u)
      (lambda (x) (parse-nums x (expect #\l) "" nil)))
-    
+
     ((eql char #\l)
      (lambda (x) (parse-nums x (expect #\() "" nil)))
 
