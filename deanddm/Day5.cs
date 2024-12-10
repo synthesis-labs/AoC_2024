@@ -8,7 +8,7 @@ namespace AOC2024
 {
     internal class Day5
     {
-        String[] lines = File.ReadAllLines("input.day5.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day5.txt");
         Dictionary<int, List<int>> pageOrderingRules = new Dictionary<int, List<int>>();
         List<List<int>> pageUpdates = new List<List<int>>();
         List<List<int>> pageUpdatesThatFollowTheRules = new List<List<int>>();

@@ -8,7 +8,7 @@ namespace AOC2024
 {
     internal class Day1
     {
-        String[] lines = File.ReadAllLines("input.day1.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day1.txt");
         List<int> teamA = new List<int>();
         List<int> teamB = new List<int>();
 

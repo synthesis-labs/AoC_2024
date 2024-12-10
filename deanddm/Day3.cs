@@ -9,7 +9,7 @@ namespace AOC2024
 {
     internal class Day3
     {
-        String[] lines = File.ReadAllLines("input.day3.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day3.txt");
         Regex combinedRegex = new Regex(@"mul\(\d+,\d+\)|do(?:n't)?\(\)");
 
         internal void ExecuteDay3Part1()

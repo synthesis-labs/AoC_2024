@@ -73,4 +73,4 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-deanddm/*.txt
+deanddm/Inputs/*.txt

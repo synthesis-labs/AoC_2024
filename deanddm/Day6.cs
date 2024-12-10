@@ -11,7 +11,7 @@ namespace AOC2024
 {
     internal class Day6
     {
-        String[] lines = File.ReadAllLines("input.day6.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day6.txt");
         char[,] map = new char[0, 0];
         int startingRow, startingColumn, loopCount = 0;
         HashSet<(int row, int column)> uniqueLocations = new HashSet<(int, int)>();
@@ -123,14 +123,5 @@ namespace AOC2024
                 Direction.Right => (nextRow, nextColumn - 1, Direction.Down),
                 _ => throw new Exception("Not sure where to turn")
             };
-    }
-
-    internal enum Direction
-    {
-        Up,
-        Down,
-        Left,
-        Right,
-        Out
     }
 }

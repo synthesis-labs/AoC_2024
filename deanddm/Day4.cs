@@ -8,7 +8,7 @@ namespace AOC2024
 {
     internal class Day4
     {
-        String[] lines = File.ReadAllLines("input.day4.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day4.txt");
         (int, int)[] Coordinates =
         {
                 (-1, 0), (1, 0), (0, -1), (0, 1), // Vertical & Horizontal
