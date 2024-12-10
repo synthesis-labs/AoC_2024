@@ -10,7 +10,7 @@ namespace AOC2024
 {
     internal class Day7
     {
-        String[] lines = File.ReadAllLines("input.day7.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day7.txt");
         List<Calibrations> calibrations = new List<Calibrations>();
         Dictionary<(int, bool), List<Operation[]>> combinationsLookup = new Dictionary<(int, bool), List<Operation[]>>();
 
@@ -110,13 +110,6 @@ namespace AOC2024
             GenerateCombinations(new List<Operation>());
             combinationsLookup.Add((numberOfOperators, excludeConcat), newCombinations);
         }
-    }
-
-    internal enum Operation
-    {
-        Add,
-        Multiply,
-        Concatenate
     }
 
     internal class Calibrations

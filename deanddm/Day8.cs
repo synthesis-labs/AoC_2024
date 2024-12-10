@@ -9,7 +9,7 @@ namespace AOC2024
 {
     internal class Day8
     {
-        String[] lines = File.ReadAllLines("input.day8.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day8.txt");
         char[,] map = new char[0, 0];
         Dictionary<char, List<(int, int)>> antennas = new Dictionary<char, List<(int, int)>>();
         HashSet<(int, int, char)> antiNodes = new HashSet<(int, int, char)>();

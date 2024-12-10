@@ -8,7 +8,7 @@ namespace AOC2024
 {
     internal class Day9
     {
-        String[] lines = File.ReadAllLines("input.day9.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day9.txt");
         List<string> initialChecksums = new List<string>();
         List<(int number, int count, string stringValue)> initialChecksumChunks = new List<(int number, int count, string stringValue)>();
 
@@ -78,7 +78,6 @@ namespace AOC2024
             }
         }
 
-        //00992111777.44.333....5555.6666.....8888..
         private void DefragmentWholeChunks(List<(int number, int count, string stringValue)> checksums)
         {
             checksums.Reverse();
