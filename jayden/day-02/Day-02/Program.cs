@@ -30,13 +30,25 @@ List<List<int>> GetInput()
 
 bool IsAssending(List<int> report)
 {
-    for (int i = 0; i < report.Count; i++) {
-        if (i+1 != report.Count && report[i] != report[i+1] && report[i] < report[i + 1])
+    var numIncrease = 0;
+    var numDecrease = 0;
+    for (int i = 0; i < report.Count-1; i++)
+    {
+        if (report[i] < report[i + 1])
         {
-            return true;
+            numIncrease++;
+        }
+        else
+        {
+            numDecrease++;
         }
     }
-    return false;
+    return numIncrease > numDecrease;
+    //var first = report[0];
+    //var last = report[report.Count - 1];
+    //int middle = report[(report.Count) / 2];
+
+    //return first < middle || last > middle || first < last;
 }
 
 bool IsReportFollowingPattern(List<int> report)
@@ -62,6 +74,220 @@ bool IsReportFollowingPattern(List<int> report)
                 return false;
             }
         }
+        return true;
+    }
+}
+
+int FindErrorPosInPattern(List<int> report)
+{
+    var reportCopy = report;
+    var isAssending = IsAssending(reportCopy);
+    int? errorPos = -1;
+    if (isAssending)
+    {
+        for (int i = 1; i < report.Count-1; i++)
+        {
+            if (i + 1 != report.Count && report[i] > report[i + 1] || report[i] < report[i - 1])
+            {
+                var currentPosVal = report[i];
+                var nextPosVal = report[i + 1];
+                var prevPosVal = report[i - 1];
+
+                if(currentPosVal > nextPosVal)
+                {
+                    return i + 1;
+                }
+                if(currentPosVal < prevPosVal)
+                {
+                    return i - 1;
+                }
+                return i;
+                Console.WriteLine("there is something very wrong");
+            }
+        }
+    }
+    else
+    {
+        for (int i = 1; i < report.Count-1; i++)
+        {
+            if (i + 1 != report.Count && (report[i] < report[i + 1] || report[i] > report[i-1] ))
+            {
+                var currentPosVal = report[i];
+                var nextPosVal = report[i + 1];
+                var prevPosVal = report[i - 1];
+
+                if (currentPosVal < nextPosVal)
+                {
+                    return i + 1;
+                }
+                if (currentPosVal > prevPosVal)
+                {
+                    return i - 1;
+                }
+                return i;
+                Console.WriteLine("there is something very wrong");
+            }
+        }
+    }
+    return -1;
+}
+
+bool IsReportFollowingPatternWithOneError(List<int> report)
+{
+    var errorPos = FindErrorPosInPattern(report);
+
+    if(errorPos != -1)
+    {
+        //rerun to check pattern excluding the already found error
+        report.RemoveAt(errorPos);
+        return IsReportFollowingPattern(report);
+    }
+    else
+    {
+        return true;
+    }
+}
+
+int FindErrorPosInRange(List<int> report)
+{
+    for (int i = 1; i < report.Count - 1; i++)
+    {
+        var prevPost = report[i - 1];
+        var currentPos = report[i];
+        var nextPos = report[i + 1];
+
+        var isGapDiffSafe = false;
+        var isPrevDiffSafe = false;
+        var isNextDiffSafe = false;
+
+        var prevDiff = report[i] - report[i + 1];
+        prevDiff = prevDiff > 0 ? prevDiff : prevDiff * -1;
+
+        var gapDiff = report[i - 1] - report[i + 1];
+        gapDiff = gapDiff > 0 ? gapDiff : gapDiff * -1;
+
+        var nextDiff = report[i] - report[i + 1];
+        nextDiff = nextDiff > 0 ? nextDiff : nextDiff * -1;
+
+        if (gapDiff <= 3 && gapDiff >= 1)
+        {
+            isGapDiffSafe = true;
+        }
+        if (prevDiff > 3 || prevDiff < 1)
+        {
+            isPrevDiffSafe = true;
+        }
+        if (nextDiff > 3 || nextDiff < 1)
+        {
+            isNextDiffSafe = true;
+        }
+
+        if (isNextDiffSafe && isPrevDiffSafe)
+        {
+            continue;
+        }
+
+        if (isGapDiffSafe)
+        {
+            return i;
+        }
+
+        if (!isNextDiffSafe)
+        {
+            if (i + 2 < report.Count())
+            {
+                //if the gap between next next is safe, next is problem
+                var nextNextDiff = report[i] - report[i + 2];
+                nextNextDiff = nextNextDiff > 0 ? nextNextDiff : nextNextDiff * -1;
+                if (nextNextDiff <= 3 && nextNextDiff >= 1)
+                {
+                    return i + 1;
+                }
+            }
+            else
+            {
+                //if there is no further numbers, the next one is the issue
+                return i + 1;
+            }
+        }
+
+        if (!isPrevDiffSafe)
+        {
+            if (i - 2 >= 0)
+            {
+                var prevPrevDiff = report[i] - report[i - 2];
+                prevPrevDiff = prevPrevDiff > 0 ? prevPrevDiff : prevPrevDiff * -1;
+                if (prevPrevDiff <= 3 && prevPrevDiff >= 1)
+                {
+                    return i + 1;
+                }
+            }
+            else
+            {
+                //if there is nothing 2 before i thats the issue, i-1 is issue
+                return i - 1;
+            }
+        }
+        //    if (i + 1 != report.Count && report[i] == report[i + 1])
+        //    {
+        //        //find error pos for equal nums
+        //        return i;//if the nums are the same, it does matter which pos
+        //    }
+
+        //    if (i + 1 != report.Count)
+        //    {
+        //        //find if diff is 3
+        //        var diff = report[i] - report[i + 1];
+        //        diff = diff > 0 ? diff : diff * -1;
+        //        if (diff > 3 || diff < 1)
+        //        {
+        //            //error pos is i
+        //            if (i + 1 == report.Count)
+        //            {
+        //                return i;
+        //            }
+        //            if(i + 1 == report.Count - 1)
+        //            {
+        //                return i + 1;
+        //            }
+        //            if (i - 1 >= 0 && i + 1 < report.Count())
+        //            {
+        //                var newDiff = report[i - 1] - report[i + 1];
+        //                diff = diff > 0 ? diff : diff * -1;
+        //                if (diff > 3 || diff < 1)
+        //                {
+        //                    return i;
+        //                }
+        //            }
+
+        //            //error pos is i+1
+        //            if (i + 2 < report.Count())
+        //            {
+        //                var newDiff = report[i] - report[i + 2];
+        //                diff = diff > 0 ? diff : diff * -1;
+        //                if (diff > 3 || diff < 1)
+        //                {
+        //                    return i;
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+    }
+    return -1;
+}
+
+bool IsReportInRangeWithOneError(List<int> report)
+{
+    var errorPos = FindErrorPosInRange(report);
+
+    if(errorPos != -1)
+    {
+        report.RemoveAt(errorPos);
+        return IsReportInRange(report);
+    }
+    else
+    {
         return true;
     }
 }
@@ -95,7 +321,7 @@ string GetPart1()
 
     foreach (var report in data)
     {
-        if(IsReportFollowingPattern(report) && IsReportInRange(report))
+        if (IsReportFollowingPattern(report) && IsReportInRange(report))
         {
             safeReports++;
         }
@@ -106,12 +332,67 @@ string GetPart1()
 
 string GetPart2()
 {
-    var answer = 0;
+    var safeReports = 0;
+    var data = GetInput();
+    var row = 0;
+    foreach (var report in data)
+    {
+        row++;
+        if (row == 1)
+        {
 
+        }
+        var reportCopy = report;
+        var numErrors = 0;
 
-    return answer.ToString();
+        var errorPos = FindErrorPosInPattern(reportCopy);
+        if(errorPos != -1)
+        {
+            numErrors++;
+            reportCopy.RemoveAt(errorPos);
+            if (!IsReportFollowingPattern(reportCopy))
+            {
+                numErrors++;
+            }
+            
+        }
+
+        if (numErrors > 1)
+        {
+            continue;
+        }
+
+        if (numErrors == 0) 
+        {
+            errorPos = FindErrorPosInRange(reportCopy);
+            //error found in pattern
+            if(errorPos != -1)
+            {
+                numErrors++;
+                reportCopy.RemoveAt(errorPos);
+                if (!IsReportInRange(reportCopy))
+                {
+                    numErrors++;
+                }
+            }
+        }
+        else
+        {
+            if (!IsReportInRange(reportCopy))
+            {
+                numErrors++;
+            }
+        }
+        if(numErrors > 1)
+        {
+            continue;
+        }
+        Console.WriteLine(row);
+        safeReports++;
+    }
+
+    return safeReports.ToString();
 }
 
 Console.WriteLine("Part1: " + GetPart1());
 Console.WriteLine("Part2: " + GetPart2());
-Console.ReadLine();
