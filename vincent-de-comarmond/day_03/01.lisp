@@ -56,3 +56,5 @@
 
 (with-open-file (stream "./input.txt")
     (format t "~d~%" (parser stream (expect #\m ))))
+
+;;;; 167090022 is the right answer for part1
