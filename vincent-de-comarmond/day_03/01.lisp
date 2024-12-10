@@ -1,22 +1,24 @@
 (ql:quickload "str")
 
-(defun expect-m (input-char)
-  (eql input-char #\m))
-
 (defun digit-or-comma (input-char)
-  (or (digit-char-p input-char) (eql #\,)))
+  (or (digit-char-p input-char) (eql #\, input-char)))
+
+(defun digit-or-close (input-char)
+  (or (digit-char-p input-char) (eql #\) input-char)))
 
 (defun parse-stream (input-stream expectation-func
-				  &optional (accumulator 0) (num-buf-1 "") (num-buf-2 ""))
-  (let ((char (read-char stream nil))
+				  &optional (accumulator 0) (num-buf "") (num-1 nil))
+  (let ((char (read-char input-stream nil))
 	(stream input-stream)
 	(accum accumulator))
     (cond
+      ;; Return the accumulated value if we hit the end of the stream
       ((null char) accumulator)
+
       ;; reset if we don't read the expected character
-      ((not (funcall expectation-func char)) 
+      ((not (funcall expectation-func char))
        (parse-stream stream (lambda (x) (eql x #\m)) accum))
-      ;; We've read the expected character
+
       ((eql char #\m)
        (parse-stream stream (lambda (x) (eql x #\u)) accum))
 
@@ -29,31 +31,21 @@
       ((eql char #\()
        (parse-stream stream (lambda (x) (digit-char-p x)) accum))
 
-      ((and (digit-char-p char) (= 0 (length num-buf 1)))
-       (parse-stream stream digit-or-comma accum (string char)))
+      ((and (digit-char-p char) (null num-1))
+       (parse-stream stream 'digit-or-comma accum (str:concat num-buf (string char))))
 
-      ((and (digit-char-p char) (= 0 (length num-buf 1)))
-       (parse-stream stream digit-or-comma accum (string char)))
+      ((eql char #\,)
+       (parse-stream stream (lambda (x) (digit-char-p x)) accum "" (parse-integer num-buf)))
 
-      
-      
-     )))
+      ((and (digit-char-p char) (not (null num-1)))
+       (parse-stream stream 'digit-or-close accum (str:concat num-buf (string char)) num-1))
+
+      ((eql char #\))
+       ;; (format t "        Adding ~d x ~d to ~d:~%" num-1 num-buf accum)
+       (parse-stream stream (lambda (x) (eql x #\m)) (+ accum (* num-1 (parse-integer num-buf))) ""))
+
+      (t (parse-stream stream (lambda (x) (eql x #\m)) accum))))) ;; default - i.e. reset if anything else happens
 
 
 (with-open-file (stream "./input.txt")
-  (do ((char (read-char stream nil) (read-char stream nil)))
-      ((not char)) ;; not end of stream
-    (format t "~a~%" char)))
-
-
-		
-  ;; (let* ((list1 '())
-  ;; 	 (list2 '()))
-  ;;   (do ((line (read-line stream nil) (read-line stream nil)))
-  ;; 	((not line)) ;; not nil ... i.e. a line has been read from the stream
-  ;;     (let ((tmp (str:split #\Space line :omit-nulls 'true)))
-  ;; 	(push (parse-integer (first tmp)) list1)
-  ;; 	(push (parse-integer (second tmp)) list2)))
-  ;;   (let ((list1 (sort list1 #'<))
-  ;; 	  (list2 (sort list2 #'<)))
-  ;;     (print (reduce '+ (mapcar 'abs (mapcar '- list1 list2)))))))
+    (format t "~d~%" (parse-stream stream (lambda (c) (eql #\m c)))))
