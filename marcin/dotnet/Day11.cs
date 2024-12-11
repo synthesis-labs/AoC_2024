@@ -3,10 +3,11 @@
     public async Task<int> Part1(List<string> data) => CountStones(data, 25);
     public async Task<int> Part2(List<string> data) => CountStones(data, 75);
 
-    private void Change(Dictionary<string, double> seen, string key, double count)
+    private void Change(Dictionary<string, double> seen, string[] keys, double count)
     {
-        if (seen.ContainsKey(key)) seen[key] += count;
-        else seen.Add(key, count);
+        foreach (var key in keys) 
+            if (seen.ContainsKey(key)) seen[key] += count;
+            else seen.Add(key, count);
     }
 
     private int CountStones(List<string> data, int blinks)
@@ -19,14 +20,7 @@
             {
                 int half = key.Length / 2;
                 var (left, right, multi) = ($"{double.Parse(key.Substring(0, Math.Max(half, 1)))}", $"{double.Parse(key.Substring(half))}", $"{double.Parse(key) * 2024}");
-                var count = stones[key];
-                if (key == "0") Change(seen, "1", count);
-                else if (key.Length % 2 == 0)
-                {
-                    Change(seen, left, count);
-                    Change(seen, right, count);
-                }
-                else Change(seen, multi, count);
+                Change(seen, key == "0" ? ["1"] : (key.Length % 2 == 0 ? [left, right] : [multi]), stones[key]);
             }
             stones = seen;
         }
