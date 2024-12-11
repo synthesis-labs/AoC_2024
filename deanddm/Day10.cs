@@ -77,7 +77,7 @@ namespace AOC2024
 
             if (OutsideBounds(nextDirection.row, nextDirection.column) || 
                 map[nextDirection.row, nextDirection.column] == '.' || 
-                Int32.Parse(map[nextDirection.row, nextDirection.column].ToString()) != Convert.ToChar(nextNumber))
+                Int32.Parse(map[nextDirection.row, nextDirection.column].ToString()) != nextNumber)
                 return (-1, -1, -1);
 
             return (nextDirection.row, nextDirection.column, nextNumber);
