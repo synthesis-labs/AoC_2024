@@ -1,16 +1,36 @@
-﻿internal class Day11: IDay
+﻿internal class Day11 : IDay
 {
-    public async Task<int> Part1(List<string> data)
+    public async Task<int> Part1(List<string> data) => CountStones(data, 25);
+    public async Task<int> Part2(List<string> data) => CountStones(data, 75);
+
+    private void Change(Dictionary<string, double> seen, string key, double count)
     {
-        int result = 0;
-            
-        return await Task.FromResult(result);
+        if (seen.ContainsKey(key)) seen[key] += count;
+        else seen.Add(key, count);
     }
 
-    public async Task<int> Part2(List<string> data)
+    private int CountStones(List<string> data, int blinks)
     {
-        int result = 0;
-
-        return await Task.FromResult(result);
+        var stones = data.SelectMany(d => d.Split(' ')).ToDictionary(k => k, v => 1d);
+        for (int blink = 0; blink < blinks; blink++)
+        {
+            var seen = new Dictionary<string, double>();
+            foreach (var key in stones.Keys)
+            {
+                int half = key.Length / 2;
+                var (left, right, multi) = ($"{double.Parse(key.Substring(0, Math.Max(half, 1)))}", $"{double.Parse(key.Substring(half))}", $"{double.Parse(key) * 2024}");
+                var count = stones[key];
+                if (key == "0") Change(seen, "1", count);
+                else if (key.Length % 2 == 0)
+                {
+                    Change(seen, left, count);
+                    Change(seen, right, count);
+                }
+                else Change(seen, multi, count);
+            }
+            stones = seen;
+        }
+        Console.WriteLine(stones.Aggregate(0d, (total, item) => total += item.Value));
+        return 0;
     }
 }
