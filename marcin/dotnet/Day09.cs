@@ -2,7 +2,7 @@
 
 internal class Day09: IDay
 {
-    public async Task<int> Part1(List<string> data)
+    public double Part1(List<string> data)
     {
         var nums = data[0].Select(c => int.Parse($"{c}"));
         var files = nums.Select((n, i) => (n, i)).Where(x => x.i % 2 == 0).Select((x, i) => (listIndex: x.i, fileIndex: i, size: x.n));
@@ -25,12 +25,10 @@ internal class Day09: IDay
             }
             fbi--;
         }
-        var checksum = blocks.Select((x, i) => (x.fileIndex, listIndex: i)).Where(x => x.fileIndex > -1).Aggregate(0d, (sum, file) => sum += file.listIndex * (double)file.fileIndex);
-        Console.WriteLine(checksum);
-        return 0;
+        return blocks.Select((x, i) => (x.fileIndex, listIndex: i)).Where(x => x.fileIndex > -1).Aggregate(0d, (sum, file) => sum += file.listIndex * (double)file.fileIndex);
     }
 
-    public async Task<int> Part2(List<string> data)
+    public double Part2(List<string> data)
     {
         var nums = data[0].Select(c => int.Parse($"{c}"));
         var files = nums.Select((n, i) => (n, i)).Where(x => x.i % 2 == 0).Select((x, i) => (listIndex: x.i, fileIndex: i, size: x.n));
@@ -61,8 +59,6 @@ internal class Day09: IDay
             }
         }  
 
-        var checksum = blocks.Select((x, i) => (x.fileIndex, listIndex: i)).Where(x => x.fileIndex > -1).Aggregate(0d, (sum, file) => sum += file.listIndex * (double)file.fileIndex);
-        Console.WriteLine(checksum);
-        return 0;
+        return blocks.Select((x, i) => (x.fileIndex, listIndex: i)).Where(x => x.fileIndex > -1).Aggregate(0d, (sum, file) => sum += file.listIndex * (double)file.fileIndex);
     }
 }

@@ -1,5 +1,5 @@
 ﻿internal interface IDay
 {
-    Task<int> Part1(List<string> data);
-    Task<int> Part2(List<string> data);
+    double Part1(List<string> data);
+    double Part2(List<string> data);
 }

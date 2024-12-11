@@ -1,7 +1,7 @@
 ﻿internal class Day11 : IDay
 {
-    public async Task<int> Part1(List<string> data) => CountStones(data, 25);
-    public async Task<int> Part2(List<string> data) => CountStones(data, 75);
+    public double Part1(List<string> data) => CountStones(data, 25);
+    public double Part2(List<string> data) => CountStones(data, 75);
 
     private void Change(Dictionary<string, double> seen, string[] keys, double count)
     {
@@ -10,7 +10,7 @@
             else seen.Add(key, count);
     }
 
-    private int CountStones(List<string> data, int blinks)
+    private double CountStones(List<string> data, int blinks)
     {
         var stones = data.SelectMany(d => d.Split(' ')).ToDictionary(k => k, v => 1d);
         for (int blink = 0; blink < blinks; blink++)
@@ -24,7 +24,6 @@
             }
             stones = seen;
         }
-        Console.WriteLine(stones.Aggregate(0d, (total, item) => total += item.Value));
-        return 0;
+        return stones.Aggregate(0d, (total, item) => total += item.Value);
     }
 }

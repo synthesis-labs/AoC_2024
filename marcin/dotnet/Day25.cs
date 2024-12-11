@@ -1,16 +1,16 @@
 ﻿internal class Day25: IDay
 {
-    public async Task<int> Part1(List<string> data)
+    public double Part1(List<string> data)
     {
         int result = 0;
             
-        return await Task.FromResult(result);
+        return result;
     }
 
-    public async Task<int> Part2(List<string> data)
+    public double Part2(List<string> data)
     {
         int result = 0;
 
-        return await Task.FromResult(result);
+        return result;
     }
 }
