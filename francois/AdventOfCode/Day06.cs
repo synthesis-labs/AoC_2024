@@ -72,22 +72,19 @@ public class Day06 : BaseDay
 
     private bool IsLoop(int x, int y, string[] input)
     {
-        var visited = new HashSet<(int, int, CompassDirection)>();
+        var visited = new Dictionary<(int, int, CompassDirection), char>();
         var currentPosition = startingPosition;
         var currentDirection = CompassDirection.N;
         var previous = currentPosition;
 
-        var isLoop = false;
-        while (!isLoop)
+        while (true)
         {
-            if (visited.Contains((currentPosition.Item1, currentPosition.Item2, currentDirection)))
-                isLoop = true;
-
-
             if (input[currentPosition.Item1][currentPosition.Item2] == '#' ||
                 (currentPosition.Item1 == x && currentPosition.Item2 == y))
             {
-                visited.Add((previous.Item1, previous.Item2, currentDirection));
+                if (!visited.TryAdd((previous.Item1, previous.Item2, currentDirection), input[previous.Item1][previous.Item2]))
+                    return true;
+
                 currentPosition = previous;
                 currentDirection = currentDirection.Turn("cw");
             }
@@ -98,12 +95,11 @@ public class Day06 : BaseDay
 
             if (!IsValidPosition(nextPosition.Item1, nextPosition.Item2, input))
             {
-                break;
+                return false;
             }
 
             currentPosition = nextPosition;
         }
-        return isLoop;
     }
 
     private (int, int) GetNextPosition((int, int) currentPosition, CompassDirection currentDirection)
