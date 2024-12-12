@@ -16,7 +16,7 @@ public class Day09 : BaseDay
             var len = Convert.ToInt32(_input[x - 1] - '0');
             var free = x == _input.Length ? 0 : Convert.ToInt32(_input[x] - '0');
 
-            reserved.Insert(0, (x / 2, fullIterations.Count, len));
+            reserved.Prepend((x / 2, fullIterations.Count, len));
             freeSpace.Add((fullIterations.Count + len, free));
 
             fullIterations.AddRange(Enumerable.Repeat(x / 2, len));
