@@ -4,29 +4,29 @@ namespace AdventOfCode;
 
 public class Day12 : BaseDay
 {
-    StringMap<char> plot;
-    List<Point2D<int>> curPlots = new List<Point2D<int>>();
-    HashSet<List<Point2D<int>>> knownPlots = new HashSet<List<Point2D<int>>>();
-    List<Point2D<int>> seenPlots = new List<Point2D<int>>();
+    (Dictionary<Coordinate2D, char> map, int maxX, int maxY) plot;
+    List<Coordinate2D> curPlots = new List<Coordinate2D>();
+    HashSet<List<Coordinate2D>> knownPlots = new HashSet<List<Coordinate2D>>();
+    List<Coordinate2D> seenPlots = new List<Coordinate2D>();
     private readonly string _input;
     public Day12()
     {
         _input = File.ReadAllText(InputFilePath);
-        plot = _input.AsMap();
+        plot = _input.GenerateMap();
     }
     private string ProcessInput1(string input)
     {
         long sum = 0;
-        for (var x = 0; x < plot.Width; x++)
+        for (var x = 0; x <= plot.maxX; x++)
         {
-            for (var y = 0; y < plot.Height; y++)
+            for (var y = 0; y <= plot.maxY; y++)
             {
-                var dir = (x, y);
-                curPlots = new List<Point2D<int>>();
+                var dir = new Coordinate2D(x, y);
                 if (!seenPlots.Contains(dir))
                 {
-                    var hasValid = FindValidPlots(plot[dir], dir);
-                    if (curPlots.Count > 0 && hasValid)
+                    curPlots = new List<Coordinate2D>();
+                    FindValidPlots(plot.map[dir], dir);
+                    if (curPlots.Count > 0)
                     {
                         seenPlots.AddRange(curPlots);
                         knownPlots.Add(curPlots);
@@ -42,51 +42,51 @@ public class Day12 : BaseDay
     {
         if(partTwo)
         {
-            var seen = new List<Point2D<int>>();
+            var seen = new List<Coordinate2D>();
             var total = 0;
             foreach (var plots in knownPlots)
             {
-                var minx = plots.Min(q => q.X);
-                var miny = plots.Min(q => q.Y);
-                var maxx = plots.Max(q => q.X);
-                var maxy = plots.Max(q => q.Y);
+                var minx = plots.Min(q => q.x);
+                var miny = plots.Min(q => q.y);
+                var maxx = plots.Max(q => q.x);
+                var maxy = plots.Max(q => q.y);
                 var sides = 0;
-                for(int x = minx; x <= maxx; x++)
+                for (int x = minx; x <= maxx; x++)
                 {
-                    for(int y = miny; y <= maxy; y++)
+                    for (int y = miny; y <= maxy; y++)
                     {
                         var dir = (x, y);
                         if (plots.Contains(dir))
                         {
-                            if(!plots.Contains(dir + Point2D<int>.Left))
+                            if (!plots.Contains(dir.MoveDirection(CompassDirection.W)))
                             {
-                                if (!plots.Contains(dir + Point2D<int>.Up))
+                                if (!plots.Contains(dir.MoveDirection(CompassDirection.S)))
                                     sides++;
-                                else if(plots.Contains(dir + Point2D<int>.Up + Point2D<int>.Left))
+                                else if (plots.Contains(dir.MoveDirection(CompassDirection.SW)))
                                     sides++;
                             }
 
-                            if(!plots.Contains(dir + Point2D<int>.Up))
+                            if (!plots.Contains(dir.MoveDirection(CompassDirection.S)))
                             {
-                                if (!plots.Contains(dir + Point2D<int>.Left))
+                                if (!plots.Contains(dir.MoveDirection(CompassDirection.W)))
                                     sides++;
-                                else if (plots.Contains(dir + Point2D<int>.Up + Point2D<int>.Left))
+                                else if (plots.Contains(dir.MoveDirection(CompassDirection.SW)))
                                     sides++;
                             }
 
-                            if (!plots.Contains(dir + Point2D<int>.Right))
+                            if (!plots.Contains(dir.MoveDirection(CompassDirection.E)))
                             {
-                                if (!plots.Contains(dir + Point2D<int>.Up))
+                                if (!plots.Contains(dir.MoveDirection(CompassDirection.S)))
                                     sides++;
-                                else if (plots.Contains(dir + Point2D<int>.Right + Point2D<int>.Up))
+                                else if (plots.Contains(dir.MoveDirection(CompassDirection.SE)))
                                     sides++;
                             }
 
-                            if (!plots.Contains(dir + Point2D<int>.Down))
+                            if (!plots.Contains(dir.MoveDirection(CompassDirection.N)))
                             {
-                                if (!plots.Contains(dir + Point2D<int>.Left))
+                                if (!plots.Contains(dir.MoveDirection(CompassDirection.W)))
                                     sides++;
-                                else if (plots.Contains(dir + Point2D<int>.Left + Point2D<int>.Down))
+                                else if (plots.Contains(dir.MoveDirection(CompassDirection.NW)))
                                     sides++;
                             }
                         }
@@ -101,47 +101,41 @@ public class Day12 : BaseDay
             var sides = 0;
             foreach (var x in curPlots)
             {
-                var neighbours = x.Neighbours();
-                foreach(var y in neighbours)
+                var neighbors = x.Neighbors().Where(q => !curPlots.Contains(q));
+                foreach(var y in neighbors)
                 {
-                    if (!curPlots.Contains(y))
-                        sides++;
+                    sides++;
                 }
             }
             return sides * curPlots.Count;
         }
     }
 
-    private bool FindValidPlots(char cur, Point2D<int> dir)
+    private void FindValidPlots(char cur, Coordinate2D dir)
     {
         if(!curPlots.Contains(dir))
         {
             curPlots.Add(dir);
-            var upwards = dir + Point2D<int>.Up;
-            if (!curPlots.Contains(upwards) && upwards.Y > -1 && plot[upwards] == cur)
+            var upwards = dir.MoveDirection(CompassDirection.N);
+            if (upwards.y <= plot.maxY && plot.map[upwards] == cur && !curPlots.Contains(upwards))
             {
                 FindValidPlots(cur, upwards);
             }
-            var left = dir + Point2D<int>.Left;
-            if (!curPlots.Contains(left) && left.X > -1 && plot[left] == cur)
+            var left = dir.MoveDirection(CompassDirection.W);
+            if (left.x > -1 && plot.map[left] == cur && !curPlots.Contains(left))
             {
                 FindValidPlots(cur, left);
             }
-            var right = dir + Point2D<int>.Right;
-            if (!curPlots.Contains(right) && right.X < plot.Width && plot[right] == cur)
+            var right = dir.MoveDirection(CompassDirection.E);
+            if (right.x <= plot.maxX && plot.map[right] == cur && !curPlots.Contains(right))
             {
                 FindValidPlots(cur, right);
             }
-            var downwards = dir + Point2D<int>.Down;
-            if (!curPlots.Contains(downwards) && downwards.Y < plot.Height && plot[downwards] == cur)
+            var downwards = dir.MoveDirection(CompassDirection.S);
+            if (downwards.y > -1 && plot.map[downwards] == cur && !curPlots.Contains(downwards))
             {
                 FindValidPlots(cur, downwards);
             }
-            return true;
-        }
-        else
-        {
-            return false;
         }
     }
 
