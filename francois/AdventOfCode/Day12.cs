@@ -5,9 +5,9 @@ namespace AdventOfCode;
 public class Day12 : BaseDay
 {
     (Dictionary<Coordinate2D, char> map, int maxX, int maxY) plot;
-    List<Coordinate2D> curPlots = new List<Coordinate2D>();
-    HashSet<List<Coordinate2D>> knownPlots = new HashSet<List<Coordinate2D>>();
-    List<Coordinate2D> seenPlots = new List<Coordinate2D>();
+    Dictionary<Coordinate2D, char> curPlots = new Dictionary<Coordinate2D, char>();
+    HashSet<HashSet<Coordinate2D>> knownPlots = new HashSet<HashSet<Coordinate2D>>();
+    Dictionary<Coordinate2D, char> seenPlots = new Dictionary<Coordinate2D, char>();
     private readonly string _input;
     public Day12()
     {
@@ -22,14 +22,17 @@ public class Day12 : BaseDay
             for (var y = 0; y <= plot.maxY; y++)
             {
                 var dir = new Coordinate2D(x, y);
-                if (!seenPlots.Contains(dir))
+                if (seenPlots.TryAdd(dir, plot.map[dir]))
                 {
-                    curPlots = new List<Coordinate2D>();
+                    curPlots = new Dictionary<Coordinate2D, char>();
                     FindValidPlots(plot.map[dir], dir);
                     if (curPlots.Count > 0)
                     {
-                        seenPlots.AddRange(curPlots);
-                        knownPlots.Add(curPlots);
+                        foreach (var places in curPlots)
+                        {
+                            seenPlots.TryAdd(places.Key, places.Value);
+                        }
+                        knownPlots.Add(curPlots.KeyList().ToHashSet());
                         sum += CalculateBoundary();
                     }
                 }
@@ -42,7 +45,6 @@ public class Day12 : BaseDay
     {
         if(partTwo)
         {
-            var seen = new List<Coordinate2D>();
             var total = 0;
             foreach (var plots in knownPlots)
             {
@@ -101,7 +103,7 @@ public class Day12 : BaseDay
             var sides = 0;
             foreach (var x in curPlots)
             {
-                var neighbors = x.Neighbors().Where(q => !curPlots.Contains(q));
+                var neighbors = x.Key.Neighbors().Where(q => !curPlots.TryGetValue(q, out char _));
                 foreach(var y in neighbors)
                 {
                     sides++;
@@ -113,26 +115,25 @@ public class Day12 : BaseDay
 
     private void FindValidPlots(char cur, Coordinate2D dir)
     {
-        if(!curPlots.Contains(dir))
+        if(curPlots.TryAdd(dir, plot.map[dir]))
         {
-            curPlots.Add(dir);
             var upwards = dir.MoveDirection(CompassDirection.N);
-            if (upwards.y <= plot.maxY && plot.map[upwards] == cur && !curPlots.Contains(upwards))
+            if (upwards.y <= plot.maxY && plot.map[upwards] == cur)
             {
                 FindValidPlots(cur, upwards);
             }
             var left = dir.MoveDirection(CompassDirection.W);
-            if (left.x > -1 && plot.map[left] == cur && !curPlots.Contains(left))
+            if (left.x > -1 && plot.map[left] == cur)
             {
                 FindValidPlots(cur, left);
             }
             var right = dir.MoveDirection(CompassDirection.E);
-            if (right.x <= plot.maxX && plot.map[right] == cur && !curPlots.Contains(right))
+            if (right.x <= plot.maxX && plot.map[right] == cur)
             {
                 FindValidPlots(cur, right);
             }
             var downwards = dir.MoveDirection(CompassDirection.S);
-            if (downwards.y > -1 && plot.map[downwards] == cur && !curPlots.Contains(downwards))
+            if (downwards.y > -1 && plot.map[downwards] == cur)
             {
                 FindValidPlots(cur, downwards);
             }
