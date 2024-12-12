@@ -53,7 +53,7 @@ build3x3Grid grid (Coord x y) = strPath' grid "" deltas
     deltas = [Coord x' y' | x' <- [x - 1 .. x + 1], y' <- [y - 1 .. y + 1]]
 
 strPath' :: Grid -> String -> [Coord] -> String
-strPath' _ acc [] = (\(i, e) -> if even i then e else '_') <$> zip [0 ..] acc
+strPath' _ acc [] = (\(i :: Int, e) -> if even i then e else '_') <$> zip [0 ..] acc
 strPath' grid acc (p : ps) =
   case getElem p grid of
     Just (_, val) -> strPath' grid (acc ++ [val]) ps
