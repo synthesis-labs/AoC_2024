@@ -70,6 +70,7 @@ executable advent-of-code-haskell
     AOC2024.Day05
     AOC2024.Day06
     AOC2024.Day07
+    AOC2024.Day08
     AOC2024.Day09
     AOC2024.Day11
     AOC2024.Module
