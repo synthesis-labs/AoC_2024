@@ -12,6 +12,8 @@ namespace AOC2024
         String[] lines = File.ReadAllLines("Inputs/input.day13.txt");
         List<Claw> claws = new List<Claw>();
 
+        //NB: Solution thanks to https://github.com/MartinZikmund/advent-of-code
+
         internal void ExecuteDay13Part1()
         {
             ParseInput();
@@ -21,9 +23,9 @@ namespace AOC2024
 
         internal void ExecuteDay13Part2()
         {
-            //AddCrazyNumberToPrizes();
+            AddCrazyNumberToPrizes();
             double totalTokens = CalculateMovesPerClaw();
-            Console.WriteLine("Day 13, Part 2: ");
+            Console.WriteLine("Day 13, Part 2: " + totalTokens);
         }
 
         private void ParseInput()
@@ -70,60 +72,30 @@ namespace AOC2024
         private double CalculateMovesPerClaw()
         {
             double totalTokens = 0;
-            List<(double buttonAPresses, double buttonBPresses, double cost)> presses = new List<(double buttonAPresses, double buttonBPresses, double cost)>();
 
             foreach (var claw in claws)
             {
-                double amountOfButtonAX = claw.prizeX / claw.buttonAX;
-                double amountOfButtonBX = claw.prizeX / claw.buttonBX;
-                double currentX, currentY = 0;
-                bool exitX = false;
-                bool exitY = false;
+                // Equation
+                // 
+                // a*ax + b*bx = prizeX
+                // a*ay + b*by = prizeY
+                // a = (prizeX - b*bx) / ax
+                // ((prizeX - b*bx) / ax) * ay + b*by = prizeY
+                // ((prizeX / ax) - (b*bx / ax)) * ay + b*by = prizeY
+                // (prizeX / ax) * ay - (b*bx / ax) * ay + b*by = prizeY
+                // - (b * bx / ax) * ay + b * by = prizeY - (prizeX / ax) * ay
+                // b * by - (b* bx / ax) * ay = prizeY - (prizeX / ax) * ay
+                // b * (by - (bx / ax) * ay) = prizeY - (prizeX / ax) * ay
+                // b = (prizeY - (prizeX / ax) * ay) / (by - (bx / ax) * ay)
 
-                for (double i = 1; i < amountOfButtonAX; i++)
-                {
-                    if (exitX)
-                        break;
+                long b = (long)Math.Round((claw.prizeY - (claw.prizeX / claw.buttonAX) * claw.buttonAY) / (claw.buttonBY - (claw.buttonBX / claw.buttonAX) * claw.buttonAY));
+                long a = (long)Math.Round((claw.prizeX - b * claw.buttonBX) / claw.buttonAX);
 
-                    for (double j = 1; j < amountOfButtonBX; j++)
-                    {
-                        currentX = (claw.buttonAX * i) + (claw.buttonBX * j);
-                        currentY = (claw.buttonAY * i) + (claw.buttonBY * j);
+                var actualX = a * claw.buttonAX + b * claw.buttonBX;
+                var actualY = a * claw.buttonAY + b * claw.buttonBY;
 
-                        if (claw.prizeX == currentX &&  claw.prizeY == currentY)
-                        {
-                            presses.Add((i, j, (i * 3) + j));
-                            exitX = true;
-                            break;
-                        }
-                    }
-                }
-
-                double amountOfButtonAY = claw.prizeY / claw.buttonAY;
-                double amountOfButtonBY = claw.prizeY / claw.buttonBY;
-
-                for (double i = 1; i < amountOfButtonAY; i++)
-                {
-                    if (exitY)
-                        break;
-
-                    for (double j = 1; j < amountOfButtonBY; j++)
-                    {
-                        currentX = (claw.buttonAX * i) + (claw.buttonBX * j);
-                        currentY = (claw.buttonAY * i) + (claw.buttonBY * j);
-
-                        if (claw.prizeX == currentX && claw.prizeY == currentY)
-                        {
-                            presses.Add((i, j, (i * 3) + j));
-                            exitY = true;
-                            break;
-                        }
-                    }
-                }
-
-                var minTokens = presses.OrderBy(x => x.cost).FirstOrDefault();
-                totalTokens += minTokens.cost;
-                presses.Clear();
+                if (actualX == claw.prizeX &&  actualY == claw.prizeY && a >= 0 && b >= 0)
+                    totalTokens += (a * 3) + b;
             }
 
             return totalTokens;
@@ -132,10 +104,10 @@ namespace AOC2024
 
     internal class Claw
     {
-        internal int buttonAX { get; set; }
-        internal int buttonAY { get; set; }
-        internal int buttonBX { get; set; }
-        internal int buttonBY { get; set; }
+        internal double buttonAX { get; set; }
+        internal double buttonAY { get; set; }
+        internal double buttonBX { get; set; }
+        internal double buttonBY { get; set; }
         internal double prizeX { get; set; }
         internal double prizeY { get; set; }
     }
