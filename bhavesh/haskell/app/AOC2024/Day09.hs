@@ -6,11 +6,8 @@ where
 
 import Data.Bifunctor qualified as BF
 import Data.Char (digitToInt, isDigit)
-import Data.List (group, sort, (!?))
 import Data.Text qualified as T
 import Data.Vector qualified as V
-import Text.Parsec qualified as P
-import Util.ParseHelpers (parseAoCInput)
 
 part1 :: T.Text -> Int
 part1 input = foldr (\(i, n) acc -> acc + (n * i)) 0 numbs
