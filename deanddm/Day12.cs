@@ -5,9 +5,21 @@ namespace AOC2024
 {
     internal class Day12
     {
-        String[] lines = File.ReadAllLines("Inputs/input.day12.example.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day12.txt");
         char[,] map = new char[0, 0];
-        Dictionary<int, List<(char character, int row, int column)>> regions = new Dictionary<int, List<(char character, int row, int column)>>();
+        Dictionary<int, List<(char character, int row, int column)>> regions = [];
+        List<List<(int row, int column, bool matchCharacter)>> combinedAngles =
+        [
+            new List<(int row, int column, bool matchCharacter)> { (0, -1, false), (-1, 0, false) }, //outUpLeft
+            new List<(int row, int column, bool matchCharacter)> { (-1, 0, false), (0, 1, false) }, //outUpRight
+            new List<(int row, int column, bool matchCharacter)> { (0, -1, false), (1, 0, false) }, //outDownLeft
+            new List<(int row, int column, bool matchCharacter)> { (0, 1, false), (1, 0, false) }, //outDownRight
+            new List<(int row, int column, bool matchCharacter)> { (0, -1, true), (-1, -1, false), (-1, 0, true) }, //inDownRight
+            new List<(int row, int column, bool matchCharacter)> { (0, 1, true), (-1, 1, false), (-1, 0, true) }, //inDownLeft
+            new List<(int row, int column, bool matchCharacter)> { (0, -1, true), (1, -1, false), (1, 0, true) }, //inUpRight
+            new List<(int row, int column, bool matchCharacter)> { (0, 1, true), (1, 1, false), (1, 0, true) } //inUpLeft
+        ];
+        List<(int row, int column)> directions = [(-1, 0), (0, 1), (1, 0), (0, -1)];
 
         internal void ExecuteDay12Part1()
         {
@@ -29,10 +41,8 @@ namespace AOC2024
             map = new char[lines.Length, lines[0].Length];
 
             for (int i = 0; i < lines.Length; i++)
-            {
                 for (int j = 0; j < lines[i].Length; j++)
                     map[i, j] = lines[i][j];
-            }
         }
 
         private void IdentifyRegions()
@@ -48,7 +58,6 @@ namespace AOC2024
                     var plots = new List<(char character, int row, int column)>() { (character: map[i, j], row: i, column: j) };
                     FindConnectedGardens(plots);
                     regions.Add(region, plots.Distinct().ToList());
-
                     region++;
                 }
             }
@@ -62,17 +71,12 @@ namespace AOC2024
                 if (map[garden.row, garden.column] == '.')
                     continue;
 
-                if (!OutsideBounds(garden.row - 1, garden.column) && map[garden.row - 1, garden.column] == garden.character)
-                    newPlots.Add((garden.character, garden.row - 1, garden.column));
-
-                if (!OutsideBounds(garden.row, garden.column + 1) && map[garden.row, garden.column + 1] == garden.character)
-                    newPlots.Add((garden.character, garden.row, garden.column + 1));
-
-                if (!OutsideBounds(garden.row + 1, garden.column) && map[garden.row + 1, garden.column] == garden.character)
-                    newPlots.Add((garden.character, garden.row + 1, garden.column));
-
-                if (!OutsideBounds(garden.row, garden.column - 1) && map[garden.row, garden.column - 1] == garden.character)
-                    newPlots.Add((garden.character, garden.row, garden.column - 1));
+                foreach (var direction in directions)
+                {
+                    if (!OutsideBounds(garden.row + direction.row, garden.column + direction.column) && 
+                        map[garden.row + direction.row, garden.column + direction.column] == garden.character)
+                        newPlots.Add((garden.character, garden.row + direction.row, garden.column + direction.column));
+                }
 
                 map[garden.row, garden.column] = '.';
             }
@@ -98,19 +102,11 @@ namespace AOC2024
                 {
                     foreach (var plot in region.Value)
                     {
-                        var up = region.Value.Where(x => x.row == plot.row - 1 && x.column == plot.column).Count();
-                        var right = region.Value.Where(x => x.row == plot.row && x.column == plot.column + 1).Count();
-                        var down = region.Value.Where(x => x.row == plot.row + 1 && x.column == plot.column).Count();
-                        var left = region.Value.Where(x => x.row == plot.row && x.column == plot.column - 1).Count();
-
-                        if (up == 0)
-                            boundaries++;
-                        if (right == 0)
-                            boundaries++;
-                        if (down == 0)
-                            boundaries++;
-                        if (left == 0)
-                            boundaries++;
+                        foreach (var direction in directions)
+                        {
+                            if (region.Value.Where(x => x.row == plot.row + direction.row && x.column == plot.column + direction.column).Count() == 0)
+                                boundaries++;
+                        }
                     }
                 }
 
@@ -124,108 +120,28 @@ namespace AOC2024
             int totalPrice = 0;
             foreach (var region in regions)
             {
-                int boundaries = 0;
-                var seenPlots = new List<(char character, int row, int column)>();
                 if (region.Value.Count == 1)
-                {
-                    boundaries = 4;
-                }
+                    totalPrice += (region.Value.Count * 4);
                 else
-                {
-                    ContinueTheLine(region.Value[0], region.Value, Direction.Right, (region.Value[0], Direction.Right), ref boundaries, seenPlots, true);
-                }
-
-                var regionPrice = region.Value.Count * boundaries;
-                totalPrice += regionPrice;
+                    foreach (var plot in region.Value)
+                        totalPrice += (region.Value.Count * IsACorner(plot));
             }
             return totalPrice;
         }
 
-        private void ContinueTheLine((char character, int row, int column) plot,
-            List<(char character, int row, int column)> region,
-            Direction direction,
-            ((char character, int row, int column) plot, Direction direction) startingPlot,
-            ref int counter,
-            List<(char character, int row, int column)> seenPlots,
-            bool firstPlot = false)
+        private int IsACorner((char character, int row, int column) plot) =>
+            combinedAngles.Sum(x => x.All(y => CheckAngle(y, plot) == true) ? 1 : 0);
+
+        private bool CheckAngle((int row, int column, bool matchCharacter) increment, (char character, int row, int column) plot)
         {
-            if (!seenPlots.Contains(plot))
-                seenPlots.Add(plot);
+            var outsideOfBounds = OutsideBounds(plot.row + increment.row, plot.column + increment.column);
 
-            if (!firstPlot && plot == startingPlot.plot && direction == startingPlot.direction)
-                return;
-
-            switch (direction)
-            {
-                case Direction.Up:
-                    var up = region.Where(x => x.row == plot.row - 1 && x.column == plot.column).ToList();
-
-                    if (up.Count == 1)
-                        ContinueTheLine(up[0], region, Direction.Up, startingPlot, ref counter, seenPlots);
-                    else
-                    {
-                        counter += 1;
-                        var upLeft = region.Where(x => x.row == plot.row && x.column == plot.column - 1).ToList();
-                        if (upLeft.Count == 1)
-                            ContinueTheLine(upLeft[0], region, Direction.Left, startingPlot, ref counter, seenPlots);
-                        else
-                            ContinueTheLine(plot, region, Direction.Right, startingPlot, ref counter, seenPlots);
-                    }
-                    break;
-                case Direction.Right:
-                    var right = region.Where(x => x.row == plot.row && x.column == plot.column + 1).ToList();
-
-                    if (right.Count == 1)
-                        ContinueTheLine(right[0], region, Direction.Right, startingPlot, ref counter, seenPlots);
-                    else
-                    {
-                        counter += 1;
-                        var rightUp = region.Where(x => x.row == plot.row - 1 && x.column == plot.column).ToList();
-                        if (rightUp.Count == 1)
-                            ContinueTheLine(rightUp[0], region, Direction.Up, startingPlot, ref counter, seenPlots);
-                        else
-                            ContinueTheLine(plot, region, Direction.Down, startingPlot, ref counter, seenPlots);
-                    }
-                    break;
-                case Direction.Down:
-                    var down = region.Where(x => x.row == plot.row + 1 && x.column == plot.column).ToList();
-                    var downRight = region.Where(x => x.row == plot.row && x.column == plot.column + 1).ToList();
-
-                    if (downRight.Count == 1)
-                    {
-                        counter += 1;
-                        ContinueTheLine(downRight[0], region, Direction.Right, startingPlot, ref counter, seenPlots);
-                    }
-                    else if (down.Count == 1)
-                        ContinueTheLine(down[0], region, Direction.Down, startingPlot, ref counter, seenPlots);
-                    else
-                    {
-                        counter += 1;
-                        ContinueTheLine(plot, region, Direction.Left, startingPlot, ref counter, seenPlots);
-                    }
-                    break;
-                case Direction.Left:
-                    var left = region.Where(x => x.row == plot.row && x.column == plot.column - 1).ToList();
-
-                    if (left.Count == 1)
-                        ContinueTheLine(left[0], region, Direction.Left, startingPlot, ref counter, seenPlots);
-                    else
-                    {
-                        counter += 1;
-                        var leftDown = region.Where(x => x.row == plot.row + 1 && x.column == plot.column).ToList();
-                        if (leftDown.Count == 1)
-                            ContinueTheLine(leftDown[0], region, Direction.Down, startingPlot, ref counter, seenPlots);
-                        else
-                            ContinueTheLine(plot, region, Direction.Up, startingPlot, ref counter, seenPlots);
-                    }
-                    break;
-                default:
-                    break;
-            }
+            return increment.matchCharacter ?
+                        !outsideOfBounds && map[plot.row + increment.row, plot.column + increment.column] == plot.character
+                        : outsideOfBounds || map[plot.row + increment.row, plot.column + increment.column] != plot.character;
         }
 
         private bool OutsideBounds(int nextRow, int nextColumn) =>
             nextRow < 0 || nextRow >= map.GetLength(0) || nextColumn < 0 || nextColumn >= map.GetLength(1);
-
     }
 }
