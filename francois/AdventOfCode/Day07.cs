@@ -6,8 +6,6 @@ public class Day07 : BaseDay
 {
     private readonly HashSet<(long, List<long>)> testValues = new HashSet<(long, List<long>)>();
     private readonly string[] _input;
-    private readonly List<char> operations = new List<char>() { '+', '*' };
-    private readonly List<char> part2operations = new List<char>() { '+', '*', '|' };
     public Day07()
     {
         _input = File.ReadAllLines(InputFilePath);
@@ -22,29 +20,7 @@ public class Day07 : BaseDay
         long sum = 0;
         foreach (var value in testValues)
         {
-            var isValid = false;
-
-            var permlist = CreatePermutations(value.Item2.Count - 1, operations);
-
-            isValid = permlist.Any(permutation => CheckValidity(value.Item1, value.Item2, permutation));
-
-            // original MORE brute force approach for part 1 -- took way too long on actual dataset
-            //var checkAllAdd = value.Item2.Sum();
-            //if (checkAllAdd == value.Item1)
-            //{
-            //    isValid = true;
-            //}
-            //else if (value.Item2.Aggregate((x, y) => x * y) == value.Item1)
-            //{
-            //    isValid = true;
-            //}
-            //else
-            //{
-            //    var testVal = value.Item2[0];
-            //    var testlist = new List<int>(value.Item2);
-            //    testlist.RemoveAt(0);
-            //    isValid = CheckPermutations(value.Item1, testlist, testVal);
-            //}
+            var isValid = CheckValidity(value.Item1, value.Item2, value.Item2.Count - 1, false);//, value.Item2[0]);
 
             if (isValid)
             {
@@ -57,13 +33,8 @@ public class Day07 : BaseDay
     {
         long sum = 0;
         foreach (var value in testValues)
-        //Parallel.ForEach(testValues, (value) =>
         {
-            var isValid = false;
-
-            var permlist = CreatePermutations(value.Item2.Count - 1, part2operations);
-
-            isValid = permlist.Any(permutation => CheckValidity(value.Item1, value.Item2, permutation));
+            var isValid = CheckValidity(value.Item1, value.Item2, value.Item2.Count - 1, true);//, value.Item2[0]);
 
             if (isValid)
             {
@@ -73,77 +44,52 @@ public class Day07 : BaseDay
         return $"{sum}";
     }
 
-    private bool CheckValidity(long target, List<long> numbers, List<char> permutations)
+    private bool CheckValidity(long target, List<long> numbers, int index, bool partTwo)
     {
-        char perm = '+';
-        long testval = 0;
-        for (var i = 0; i < numbers.Count; i++)
+        if (index == 0)
         {
-            testval = perm switch
-            {
-                '+' => testval += numbers[i],
-                '*' => testval *= numbers[i],
-                '|' => long.Parse($"{testval}{numbers[i]}")
-            };
-
-            if(i < permutations.Count)
-            {
-                perm = permutations[i];
-            }
-        }
-        return testval == target;
-    }
-
-    private void PermutationHelper(List<List<char>> res, char[] cur, int index, List<char> operations)
-    {
-        if (index == cur.Length)
-        {
-            res.Add(new List<char>(cur));
-        }
-        else
-        {
-            foreach(var calc in operations)
-            {
-                cur[index] = calc;
-                PermutationHelper(res, cur, index + 1, operations);
-            }
+            return target == numbers[0];
         }
 
+        if (target > numbers[index]
+            && CheckValidity(target - numbers[index], numbers, index - 1, partTwo)) return true;
+
+        if (target % numbers[index] == 0 &&
+            CheckValidity(target / numbers[index], numbers, index - 1, partTwo)) return true;
+
+        if (partTwo)
+        {
+            long div = (long)Math.Pow(10, Math.Floor(Math.Log10(numbers[index])) + 1);
+
+            if (target % div == numbers[index] &&
+                CheckValidity(target / div, numbers, index - 1, partTwo))
+                return true;
+        }
+        return false;
     }
 
-    private List<List<char>> CreatePermutations(int len, List<char> operations)
-    {
-        var res = new List<List<char>>();
-        PermutationHelper(res, new char[len], 0, operations);
-        return res;
-    }
-
-    // original MORE brute force approach for part 1 -- took way too long on actual dataset
-    //private bool CheckPermutations(long target, List<int> items, long curValue)
+    //private bool CheckValidity(long target, List<long> numbers, int index, bool partTwo, long cur = 0)
     //{
-    //    foreach(var item in items)
+    //    if (index == numbers.Count)
     //    {
-    //        var testList = new List<int>(items);
-    //        testList.RemoveAt(0);
-    //        var checkAdd = CheckPermutations(target, testList, curValue + items[0]);
-    //        var checkMul = CheckPermutations(target, testList, curValue * items[0]);
+    //        return target == cur;
+    //    }
 
-    //        if(checkAdd || checkMul)
+    //    if (CheckValidity(target, numbers, index + 1, partTwo, cur + numbers[index])) return true;
+
+    //    if (CheckValidity(target, numbers, index + 1, partTwo, cur * numbers[index])) return true;
+
+    //    if (partTwo)
+    //    {
+    //        if(index < numbers.Count)
     //        {
-    //            return true;
+    //            cur = long.Parse($"{cur}{numbers[index]}");
+    //            if (CheckValidity(target, numbers, index + 1, partTwo, cur))
+    //                return true;
     //        }
     //    }
-
-    //    if(target != curValue)
-    //    {
-    //        return false;
-    //    }
-    //    else
-    //    {
-    //        return true;
-    //    }
+    //    return false;
     //}
-
 
     public override ValueTask<string> Solve_1() => new(ProcessInput1(_input));
 

@@ -15,7 +15,6 @@
                 isSorted = true;
                 for (int i = 0; i < update.Count; i++)
                     for (int j = i; j < update.Count; j++)
-                    {
                         if (i != j && rules.Contains($"{update[j]}|{update[i]}"))
                         {
                             isValid = isSorted = false;
@@ -23,7 +22,6 @@
                             update[j] = update[i];
                             update[i] = swap;
                         }
-                    }
             } while (!isSorted);
             if (isValid) validSum += update[(int)Math.Ceiling((double)update.Count / 2) - 1];
             else sortedInvalidSum += update[(int)Math.Ceiling((double)update.Count / 2) - 1];
@@ -31,7 +29,7 @@
         _sums = new Tuple<int, int>(validSum, sortedInvalidSum);
     }
     
-    public async Task<int> Part1(List<string> data) => _sums.Item1;
+    public double Part1(List<string> data) => _sums.Item1;
 
-    public async Task<int> Part2(List<string> data) => _sums.Item2;
+    public double Part2(List<string> data) => _sums.Item2;
 }

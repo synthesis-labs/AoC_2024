@@ -1212,6 +1212,13 @@ namespace Utilities
                 yield return this + Down + Right;
             }
         }
+        public IEnumerable<Point2D<T>> DiagonalNeighbours()
+        {
+            yield return this + Up + Left;
+            yield return this + Up + Right;
+            yield return this + Down + Left;
+            yield return this + Down + Right;
+        }
 
         public T ManhattanDistance(Point2D<T> other)
             => T.Abs(other.X - X) + T.Abs(other.Y - Y);
@@ -1392,4 +1399,22 @@ namespace Utilities
         public long len => Ranges.Aggregate(1L, (a, b) => a *= b.Value.Len);
     }
     #endregion Ranges
+
+    public class ExtendedDictionary<TKey, TValue> : Dictionary<TKey, TValue> where TValue : new()
+    {
+        public new TValue this[TKey key]
+        {
+            get
+            {
+                TValue val;
+                if(!TryGetValue(key, out val))
+                {
+                    val = new TValue();
+                    Add(key, val);
+                }
+                return val;
+            }
+            set { base[key] = value; }
+        }
+    }
 }

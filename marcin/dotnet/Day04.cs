@@ -1,8 +1,8 @@
 ﻿internal class Day04 : IDay
 {
-    public async Task<int> Part1(List<string> data) => CrossWord(data).words;
+    public double Part1(List<string> data) => CrossWord(data).words;
 
-    public async Task<int> Part2(List<string> data) => CrossWord(data).crosses;
+    public double Part2(List<string> data) => CrossWord(data).crosses;
 
     private (int words, int crosses) CrossWord(List<string> puzzle)
     {
@@ -24,10 +24,8 @@
                 }
                 if (puzzle[row][col] == 'A' && row - 1 >= 0 && col - 1 >= 0 && row + 1 < maxr && col + 1 < maxc)
                 {
-                    if (puzzle[row + 1][col + 1] == 'S' && puzzle[row - 1][col - 1] == 'M') xcount++;
-                    if (puzzle[row + 1][col + 1] == 'M' && puzzle[row - 1][col - 1] == 'S') xcount++;
-                    if (puzzle[row - 1][col + 1] == 'S' && puzzle[row + 1][col - 1] == 'M') xcount++;
-                    if (puzzle[row - 1][col + 1] == 'M' && puzzle[row + 1][col - 1] == 'S') xcount++;
+                    if ((puzzle[row + 1][col + 1] == 'S' && puzzle[row - 1][col - 1] == 'M') || (puzzle[row + 1][col + 1] == 'M' && puzzle[row - 1][col - 1] == 'S')) xcount++;
+                    if ((puzzle[row - 1][col + 1] == 'S' && puzzle[row + 1][col - 1] == 'M') || (puzzle[row - 1][col + 1] == 'M' && puzzle[row + 1][col - 1] == 'S')) xcount++;
                 }
                 crosses += xcount == 2 ? 1 : 0;
             }

@@ -1,24 +1,24 @@
 ﻿internal class Day01: IDay
 {
-    public async Task<int> Part1(List<string> data)
+    public double Part1(List<string> data)
     {
         var (first, second) = ParseList(data);
         first.Sort();
         second.Sort();
-        return await Task.FromResult(first.Select((f, i) => Math.Abs(f - second[i])).Sum());
+        return first.Select((f, i) => Math.Abs(f - second[i])).Sum();
     }
 
-    public async Task<int> Part2(List<string> data)
+    public double Part2(List<string> data)
     {
         var occurences = new Dictionary<int, int>();
         var (first, second) = ParseList(data);
-        return await Task.FromResult(
-            first.Aggregate(0, (sum, l) => {
-                if (!occurences.ContainsKey(l)) 
-                    occurences.Add(l, second.Where(r => r == l).Count());
-                sum += (l * occurences[l]);
-                return sum;
-        }));
+        return first.Aggregate(0, (sum, l) =>
+        {
+            if (!occurences.ContainsKey(l))
+                occurences.Add(l, second.Where(r => r == l).Count());
+            sum += (l * occurences[l]);
+            return sum;
+        });
     }
 
     private (List<int> first, List<int> second) ParseList(List<string> data)

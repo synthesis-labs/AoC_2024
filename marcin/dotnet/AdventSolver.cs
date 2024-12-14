@@ -16,11 +16,11 @@ internal class AdventSolver
             var data = await _datasetReader.ReadDatasetAsync(year, day, sample);
             var dayImpl = GetDay(day, data);
             var watch = Stopwatch.StartNew();
-            var part1 = await dayImpl.Part1(data);
+            var part1 = dayImpl.Part1(data);
             watch.Stop();
             var ms1 = watch.ElapsedMilliseconds;
             watch.Restart();
-            var part2 = await dayImpl.Part2(data);
+            var part2 = dayImpl.Part2(data);
             watch.Stop();
             var ms2 = watch.ElapsedMilliseconds;
             Console.WriteLine($"Day: {day}");

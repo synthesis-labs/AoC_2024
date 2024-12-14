@@ -1,7 +1,7 @@
 ﻿internal class Day08 : IDay
 {
-    public async Task<int> Part1(List<string> data) => GetNodes(data).antinodes;
-    public async Task<int> Part2(List<string> data) => GetNodes(data).harmonics;
+    public double Part1(List<string> data) => GetNodes(data).antinodes;
+    public double Part2(List<string> data) => GetNodes(data).harmonics;
 
     private (int antinodes, int harmonics) GetNodes(List<string> grid)
     {

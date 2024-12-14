@@ -4,13 +4,12 @@ module AOC2024.Day06
   )
 where
 
-import Data.Maybe (isNothing)
 import Data.Text qualified as T
 import Data.Vector qualified as V
 import Prelude hiding (Left, Right)
 
 part1 :: T.Text -> Int
-part1 input = length $ findVisited (grid, gridLen) Up start V.empty
+part1 input = length . fst $ findVisited (grid, gridLen) Up start V.empty
   where
     gridLen = length $ T.lines input
     start = maybe (Coord (-1) (-1)) getCoord (V.findIndex (== '^') grid)
@@ -18,7 +17,15 @@ part1 input = length $ findVisited (grid, gridLen) Up start V.empty
     getCoord i = Coord (i `div` gridLen) (i `mod` gridLen)
 
 part2 :: T.Text -> Int
-part2 input = 0
+part2 input = length $ V.filter snd loops
+  where
+    loops = (\g -> findVisited (g, gridLen) Up start V.empty) <$> newReplacedGrids
+    newReplacedGrids = V.filter (V.elem '^') $ changeOneValue gridLen grid . fst <$> originalPath
+    originalPath = fst $ findVisited (grid, gridLen) Up start V.empty
+    gridLen = length $ T.lines input
+    start = maybe (Coord (-1) (-1)) getCoord (V.findIndex (== '^') grid)
+    grid = parseGrid input V.empty 0
+    getCoord i = Coord (i `div` gridLen) (i `mod` gridLen)
 
 data Coord = Coord Int Int deriving (Show, Ord)
 
@@ -28,28 +35,35 @@ instance Eq Coord where
 
 type Grid = V.Vector Char
 
-type Visited = V.Vector Coord
+type Visited = V.Vector (Coord, Direction)
 
-data Direction = Up | Down | Left | Right
+data Direction = Up | Down | Left | Right deriving (Show, Eq)
 
-findVisited :: (Grid, Int) -> Direction -> Coord -> Visited -> Visited
+findVisited :: (Grid, Int) -> Direction -> Coord -> Visited -> (Visited, Bool)
 findVisited (grid, gridLen) dir c visited =
-  case grid V.!? newCoordPos of
-    Just a -> case a of
-      '#' -> findVisited (grid, gridLen) (changeDir dir) c visited
-      _ ->
-        if V.elem c visited
-          then findVisited (grid, gridLen) dir newCoord visited
-          else findVisited (grid, gridLen) dir newCoord (visited V.++ V.singleton c)
-    Nothing ->
-      if newNewVal == Just '#' || isNothing newNewVal
-        then visited V.++ V.singleton c
-        else findVisited (grid, gridLen) dir newCoord visited
+  if not (inBounds newCoord gridLen)
+    then (visited V.++ V.singleton (c, dir), False)
+    else case grid V.!? newCoordPos of
+      Just a -> case a of
+        '#' -> findVisited (grid, gridLen) (changeDir dir) c visited
+        _ ->
+          if any (\e -> fst e == c) visited
+            then
+              if (c, dir) `elem` visited
+                then (visited V.++ V.singleton (c, dir), True)
+                else findVisited (grid, gridLen) dir newCoord visited
+            else findVisited (grid, gridLen) dir newCoord (visited V.++ V.singleton (c, dir))
+      Nothing -> (visited V.++ V.singleton (c, dir), False)
   where
-    newNewVal = grid V.!? getPos (applyDelta (changeDir dir) c)
     newCoordPos = getPos newCoord
     newCoord = applyDelta dir c
     getPos (Coord x y) = x * gridLen + y
+
+inBounds :: Coord -> Int -> Bool
+inBounds (Coord x y) gridLen = x >= 0 && x < gridLen && y >= 0 && y < gridLen
+
+changeOneValue :: Int -> Grid -> Coord -> Grid
+changeOneValue gridLen grid (Coord x y) = grid V.// [(x * gridLen + y, '#')]
 
 changeDir :: Direction -> Direction
 changeDir Up = Right

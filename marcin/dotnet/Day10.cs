@@ -1,7 +1,7 @@
 ﻿internal class Day10: IDay
 {
-    public async Task<int> Part1(List<string> data) => HikeTrails(data).score;
-    public async Task<int> Part2(List<string> data) => HikeTrails(data).rating;
+    public double Part1(List<string> data) => HikeTrails(data).score;
+    public double Part2(List<string> data) => HikeTrails(data).rating;
 
     private (int score, int rating) HikeTrails(List<string> data)
     {

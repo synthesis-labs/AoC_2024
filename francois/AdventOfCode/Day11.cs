@@ -30,13 +30,9 @@ public class Day11 : BaseDay
                 var stoneString = stone.Key.ToString();
                 if (stone.Key == 0)
                 {
-                    if(newList.ContainsKey(1))
+                    if (!newList.TryAdd(1, stone.Value))
                     {
                         newList[1] += stone.Value;
-                    }
-                    else
-                    {
-                        newList.TryAdd(1, stone.Value);
                     }
                 }
                 else if (stoneString.Length % 2 == 0)
@@ -45,34 +41,23 @@ public class Day11 : BaseDay
                     var newSplit = stringval.Select(q => string.Join("", q)).ToList();
                     var parse1 = long.Parse(newSplit[0]);
                     var parse2 = long.Parse(newSplit[1]);
-                    if (newList.ContainsKey(parse1))
+                    
+                    if (!newList.TryAdd(parse1, stone.Value))
                     {
                         newList[parse1] += stone.Value;
                     }
-                    else
-                    {
-                        newList.TryAdd(parse1, stone.Value);
-                    }
-
-                    if (newList.ContainsKey(parse2))
+                    
+                    if (!newList.TryAdd(parse2, stone.Value))
                     {
                         newList[parse2] += stone.Value;
-                    }
-                    else
-                    {
-                        newList.TryAdd(parse2, stone.Value);
                     }
                 }
                 else
                 {
                     var newKey = stone.Key * 2024;
-                    if (newList.ContainsKey(newKey))
+                    if (!newList.TryAdd(newKey, stone.Value))
                     {
                         newList[newKey] += stone.Value;
-                    }
-                    else
-                    {
-                        newList.TryAdd(newKey, stone.Value);
                     }
                 }
             }
@@ -129,13 +114,9 @@ public class Day11 : BaseDay
                 var stoneString = stone.Key.ToString();
                 if (stone.Key == 0)
                 {
-                    if (newList.ContainsKey(1))
+                    if (!newList.TryAdd(1, stone.Value))
                     {
                         newList[1] += stone.Value;
-                    }
-                    else
-                    {
-                        newList.TryAdd(1, stone.Value);
                     }
                 }
                 else if (stoneString.Length % 2 == 0)
@@ -144,34 +125,23 @@ public class Day11 : BaseDay
                     var newSplit = stringval.Select(q => string.Join("", q)).ToList();
                     var parse1 = long.Parse(newSplit[0]);
                     var parse2 = long.Parse(newSplit[1]);
-                    if (newList.ContainsKey(parse1))
+
+                    if (!newList.TryAdd(parse1, stone.Value))
                     {
                         newList[parse1] += stone.Value;
                     }
-                    else
-                    {
-                        newList.TryAdd(parse1, stone.Value);
-                    }
 
-                    if (newList.ContainsKey(parse2))
+                    if (!newList.TryAdd(parse2, stone.Value))
                     {
                         newList[parse2] += stone.Value;
-                    }
-                    else
-                    {
-                        newList.TryAdd(parse2, stone.Value);
                     }
                 }
                 else
                 {
                     var newKey = stone.Key * 2024;
-                    if (newList.ContainsKey(newKey))
+                    if (!newList.TryAdd(newKey, stone.Value))
                     {
                         newList[newKey] += stone.Value;
-                    }
-                    else
-                    {
-                        newList.TryAdd(newKey, stone.Value);
                     }
                 }
             }

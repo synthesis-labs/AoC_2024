@@ -22,7 +22,7 @@ internal class Day07: IDay
         public List<string> ValidEquations { get; set; } = new List<string>();
     }
 
-    public async Task<int> Part1(List<string> data)
+    public double Part1(List<string> data)
     {
         double sum = 0;
         foreach (var item in _equations)
@@ -65,11 +65,10 @@ internal class Day07: IDay
             item.Valid = isValid;
         }
 
-        Console.WriteLine($"PART1: {sum}");
-        return 0;
+        return sum;
     }
 
-    public async Task<int> Part2(List<string> data)
+    public double Part2(List<string> data)
     {
         double sum = 0;
         int index = 1;
@@ -139,7 +138,6 @@ internal class Day07: IDay
             item.Valid = isValid;
         }
 
-        Console.WriteLine($"PART2: {sum}");
-        return 0;
+        return sum;
     }
 }
