@@ -10,9 +10,6 @@ import Data.Map qualified as M
 import Data.Text qualified as T
 import Data.Vector qualified as V
 
-{-
-925 is too low
--}
 part1 :: T.Text -> Int
 part1 input = length . nub $ foldr (flip (++)) [] (M.elems antiNodes)
   where
@@ -59,7 +56,7 @@ pairs :: [a] -> [(a, a)]
 pairs l = [(x, y) | (x : ys) <- tails l, y <- ys]
 
 calculateAllAntiNodes :: Int -> (Coord, Coord) -> [Coord]
-calculateAllAntiNodes gridLen (c1@(Coord x1 y1), c2@(Coord x2 y2)) =
+calculateAllAntiNodes gridLen (c1@(Coord x1 y1), Coord x2 y2) =
   if null antiNodesList
     then antiNodesList
     else
@@ -86,7 +83,7 @@ calculateAllAntiNodes gridLen (c1@(Coord x1 y1), c2@(Coord x2 y2)) =
       | otherwise = Coord (x2 - xDiff) (y2 - yDiff)
 
 calculateAntiNode :: Int -> (Coord, Coord) -> [Coord]
-calculateAntiNode gridLen (c1@(Coord x1 y1), c2@(Coord x2 y2)) = filter (inBounds gridLen) [antinode1, antinode2]
+calculateAntiNode gridLen (Coord x1 y1, Coord x2 y2) = filter (inBounds gridLen) [antinode1, antinode2]
   where
     xDiff = abs $ x2 - x1
     yDiff = abs $ y2 - y1
