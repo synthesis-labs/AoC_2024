@@ -61,8 +61,8 @@ def move(
             return warehouse, location
 
     new_loc = np.add(location, direction)
-    warehouse[*location] = "."
-    warehouse[*new_loc] = "@"
+    warehouse[location[0], location[1]] = "."
+    warehouse[new_loc[0], new_loc[1]] = "@"
 
     match direction:
         case (-1, 0):
