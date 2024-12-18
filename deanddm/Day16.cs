@@ -8,7 +8,7 @@ namespace AOC2024
 {
     internal class Day16
     {
-        String[] lines = File.ReadAllLines("Inputs/input.day16.example2.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day16.example.txt");
         char[,] map = new char[0, 0];
         List<Reindeer> reindeers = new List<Reindeer>();
         (int row, int column) start = new();
@@ -101,8 +101,12 @@ namespace AOC2024
                         if (positive90.nextCharacter == '#' || negative90.nextCharacter == '#')
                             reindeer.tileCount++;
 
-                        seen.TryAdd(sameDirection.nextLocation, reindeer.rotations);
                         reindeer.steps++;
+                        seen.TryAdd(sameDirection.nextLocation, reindeer.rotations);
+                    }
+                    else
+                    {
+
                     }
                 }
             }
@@ -118,7 +122,7 @@ namespace AOC2024
             Reindeer reindeer = new Reindeer();
             reindeer.steps = copy.steps + 1;
             reindeer.direction = nextLocation.direction;
-            reindeer.locations = new HashSet<(int row, int column)>(copy.locations);
+            reindeer.locations = new HashSet<(int row, int column, int steps)>(copy.locations);
             reindeer.currentLocation = nextLocation.nextLocation;
             reindeer.rotations = copy.rotations + 1;
             reindeer.tileCount = copy.tileCount;
@@ -159,28 +163,24 @@ namespace AOC2024
 
         private int CalculateBestPath()
         {
-            var tests = reindeers.Where(x => x.foundEnd).OrderBy(x => (x.rotations * 1000) + x.steps).ToList();
+            var test = reindeers.Where(x => x.foundEnd).OrderBy(x => (x.rotations * 1000) + x.steps).First();
 
-            foreach (var test in tests)
+            var pathsToAdd = reindeers.Where(x => test.locations.Contains((x.currentLocation.row, x.currentLocation.column, x.steps))).ToList();
+            List<(int row, int column, int steps)> newPaths = new List<(int row, int column, int steps)>(test.locations);
+            newPaths.AddRange([(start.row, start.column, 0), (end.row, end.column, 0)]);
+            foreach (var path in pathsToAdd)
             {
-                //ColorInTheMap(test.locations.ToList());
-
-                var pathsToAdd = reindeers.Where(x => test.locations.Contains(x.currentLocation)).ToList();
-                List<(int row, int column)> newPaths = new List<(int row, int column)>(test.locations);
-                newPaths.Add(end);
-                foreach (var path in pathsToAdd)
-                {
-                    newPaths.AddRange(path.locations.ToList());
-                }
-                newPaths = newPaths.Distinct().ToList();
-                ColorInTheMap(newPaths);
-                Console.WriteLine("Locations: " + newPaths.Count);
+                newPaths.AddRange(path.locations.ToList());
             }
+            newPaths = newPaths.Distinct().ToList();
+            ColorInTheMap(newPaths);
+            Console.WriteLine("Locations: " + newPaths.Count + ", Cost: " + (test.rotations * 1000 + test.steps - 1));
+            Console.WriteLine();
 
-            return reindeers.Where(x => x.foundEnd).Min(x => (x.rotations * 1000) + x.steps);
+            return reindeers.Where(x => x.foundEnd).Min(x => (x.rotations * 1000) + x.steps) - 1;
         }
 
-        private void ColorInTheMap(List<(int row, int column)> joins)
+        private void ColorInTheMap(List<(int row, int column, int steps)> joins)
         {
             
             foreach (var join in joins)
@@ -211,18 +211,18 @@ namespace AOC2024
     internal class Reindeer
     {
         private (int row, int column) _currentLocation = new();
-        internal HashSet<(int row, int column)> locations = new();
+        internal HashSet<(int row, int column, int steps)> locations = new();
         internal (int row, int column) currentLocation
         {
             get { return _currentLocation; }
             set
             {
-                locations.Add(value);
+                locations.Add((value.row, value.column, this.steps));
                 _currentLocation = value;
             }
         }
         internal Direction direction { get; set; } = Direction.Right;
-        internal int steps { get; set; } = 0;
+        internal int steps { get; set; } = 1;
         internal int rotations { get; set; } = 0;
         internal bool canComplete { get; set; } = false;
         internal bool canMove { get; set; } = true;
