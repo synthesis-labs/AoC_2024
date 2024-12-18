@@ -1,5 +1,4 @@
-﻿using Spectre.Console;
-using Utilities;
+﻿using Utilities;
 
 namespace AdventOfCode;
 
@@ -21,26 +20,6 @@ public class Day16 : BaseDay
         End = map.map.First(q => q.Value == 'E').Key;
     }
 
-    private void ShortestPath(Coordinate2D cur, CompassDirection dir, int visited, List<Coordinate2D> seenRoutes)
-    {
-        //if (seenRoutes.Contains(cur)) return;
-        //if (map.map[cur] == '#') return;
-        if (cur == End)
-        {
-            if (visited < Shortest)
-            {
-                Shortest = visited;
-            }
-            return;
-        }
-
-        var move = cur.MoveDirection(dir);
-        ShortestPath(move, dir, visited + 1, seenRoutes);
-        var cw = TurnClockwise(dir);
-        ShortestPath(cur.MoveDirection(cw), cw, visited + 1001, seenRoutes);
-        var ccw = TurnCounterClockwise(dir);
-        ShortestPath(cur.MoveDirection(ccw), ccw, visited + 1001, seenRoutes);
-    }
     private string ProcessInput1()
     {
         long sum = 0;
@@ -76,8 +55,8 @@ public class Day16 : BaseDay
                     newlist.Add(movement);
                     addIfShorter((movement, move.Item2, move.Item3 + 1, newlist));
                 }
-                var cw = TurnClockwise(move.Item2);
-                var ccw = TurnCounterClockwise(move.Item2);
+                var cw = move.Item2.TurnClockwise();
+                var ccw = move.Item2.TurnCounterClockwise();
                 addIfShorter((move.Item1, cw, move.Item3 + 1000, move.Item4));
                 addIfShorter((move.Item1, ccw, move.Item3 + 1000, move.Item4));
             }
@@ -113,34 +92,8 @@ public class Day16 : BaseDay
         sum = Routes[Routes.Keys.Min()].Distinct().Count();
         return $"{sum}";
     }
-    private CompassDirection TurnClockwise(CompassDirection currentDirection)
-    {
-        return currentDirection switch
-        {
-            CompassDirection.N => CompassDirection.E,
-            CompassDirection.E => CompassDirection.S,
-            CompassDirection.S => CompassDirection.W,
-            CompassDirection.W => CompassDirection.N,
-        };
-    }
-
-    private CompassDirection TurnCounterClockwise(CompassDirection currentDirection)
-    {
-        return currentDirection switch
-        {
-            CompassDirection.N => CompassDirection.W,
-            CompassDirection.E => CompassDirection.N,
-            CompassDirection.S => CompassDirection.E,
-            CompassDirection.W => CompassDirection.S,
-        };
-    }
     public override ValueTask<string> Solve_1() => new(ProcessInput1());
 
     public override ValueTask<string> Solve_2() => new(ProcessInput2());
 
-    public class Path
-    {
-        public char path { get; set; }
-        public int visited { get; set; }
-    }
 }

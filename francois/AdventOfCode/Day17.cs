@@ -54,40 +54,40 @@ public class Day17 : BaseDay
             switch (ops[i])
             {
                 case 0:
-                    if (ops[i+1] < 4)
+                    if (ops[i + 1] < 4)
                     {
-                        RegisterA = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, ops[i+1])));
+                        RegisterA = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, ops[i + 1])));
                     }
-                    else if (ops[i+1] == 4)
+                    else if (ops[i + 1] == 4)
                     {
                         RegisterA = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterA)));
                     }
-                    else if (ops[i+1] == 5)
+                    else if (ops[i + 1] == 5)
                     {
                         RegisterA = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterB)));
                     }
-                    else if (ops[i+1] == 6)
+                    else if (ops[i + 1] == 6)
                     {
                         RegisterA = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterC)));
                     }
                     break;
                 case 1:
-                    RegisterB = RegisterB ^ ops[i+1];
+                    RegisterB = RegisterB ^ ops[i + 1];
                     break;
                 case 2:
-                    if (ops[i+1] < 4)
+                    if (ops[i + 1] < 4)
                     {
-                        RegisterB = ops[i+1] % 8;
+                        RegisterB = ops[i + 1] % 8;
                     }
-                    else if (ops[i+1] == 4)
+                    else if (ops[i + 1] == 4)
                     {
                         RegisterB = RegisterA % 8;
                     }
-                    else if (ops[i+1] == 5)
+                    else if (ops[i + 1] == 5)
                     {
                         RegisterB = RegisterB % 8;
                     }
-                    else if (ops[i+1] == 6)
+                    else if (ops[i + 1] == 6)
                     {
                         RegisterB = RegisterC % 8;
                     }
@@ -95,62 +95,62 @@ public class Day17 : BaseDay
                 case 3:
                     if (RegisterA != 0)
                     {
-                        i = ops[i+1]-2;
+                        i = ops[i + 1] - 2;
                     }
                     break;
                 case 4:
                     RegisterB = RegisterB ^ RegisterC;
                     break;
                 case 5:
-                    if (ops[i+1] < 4)
+                    if (ops[i + 1] < 4)
                     {
-                        outList.Add(ops[i+1] % 8);
+                        outList.Add(ops[i + 1] % 8);
                     }
-                    else if (ops[i+1] == 4)
+                    else if (ops[i + 1] == 4)
                     {
                         outList.Add(RegisterA % 8);
                     }
-                    else if (ops[i+1] == 5)
+                    else if (ops[i + 1] == 5)
                     {
                         outList.Add(RegisterB % 8);
                     }
-                    else if (ops[i+1] == 6)
+                    else if (ops[i + 1] == 6)
                     {
                         outList.Add(RegisterC % 8);
                     }
                     break;
                 case 6:
-                    if (ops[i+1] < 4)
+                    if (ops[i + 1] < 4)
                     {
-                        RegisterB = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, ops[i+1])));
+                        RegisterB = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, ops[i + 1])));
                     }
-                    else if (ops[i+1] == 4)
+                    else if (ops[i + 1] == 4)
                     {
                         RegisterB = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterA)));
                     }
-                    else if (ops[i+1] == 5)
+                    else if (ops[i + 1] == 5)
                     {
                         RegisterB = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterB)));
                     }
-                    else if (ops[i+1] == 6)
+                    else if (ops[i + 1] == 6)
                     {
                         RegisterB = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterC)));
                     }
                     break;
                 case 7:
-                    if (ops[i+1] < 4)
+                    if (ops[i + 1] < 4)
                     {
-                        RegisterC = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, ops[i+1])));
+                        RegisterC = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, ops[i + 1])));
                     }
-                    else if (ops[i+1] == 4)
+                    else if (ops[i + 1] == 4)
                     {
                         RegisterC = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterA)));
                     }
-                    else if (ops[i+1] == 5)
+                    else if (ops[i + 1] == 5)
                     {
                         RegisterC = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterB)));
                     }
-                    else if (ops[i+1] == 6)
+                    else if (ops[i + 1] == 6)
                     {
                         RegisterC = Convert.ToInt32(Math.Floor(RegisterA / Math.Pow(2, RegisterC)));
                     }
@@ -179,14 +179,14 @@ public class Day17 : BaseDay
         {
             a = test * 8 | d;
             var i = 0;
-            while(i < Operands.Count)
+            while (i < Operands.Count)
             {
                 var hit5 = false;
                 switch (Operands[i])
                 {
                     case 0:
                         if (Operands[i + 1] <= 3)
-                            a = Convert.ToInt64(Math.Floor(a / Math.Pow(2, Operands[i+1])));
+                            a = Convert.ToInt64(Math.Floor(a / Math.Pow(2, Operands[i + 1])));
                         else if (Operands[i + 1] == 4) a = Convert.ToInt64(Math.Floor(a / Math.Pow(2, a)));
                         else if (Operands[i + 1] == 5) a = Convert.ToInt64(Math.Floor(a / Math.Pow(2, b)));
                         else if (Operands[i + 1] == 6) a = Convert.ToInt64(Math.Floor(a / Math.Pow(2, c)));
@@ -244,16 +244,11 @@ public class Day17 : BaseDay
 
     private string ProcessInput2()
     {
-        Solve(Operands.Count -1, 0);
+        Solve(Operands.Count - 1, 0);
         return $"{res}";
     }
     public override ValueTask<string> Solve_1() => new(ProcessInput1());
 
     public override ValueTask<string> Solve_2() => new(ProcessInput2());
 
-    public class Path
-    {
-        public char path { get; set; }
-        public int visited { get; set; }
-    }
 }
