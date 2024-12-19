@@ -8,7 +8,7 @@ namespace AOC2024
 {
     internal class Day16
     {
-        String[] lines = File.ReadAllLines("Inputs/input.day16.example.txt");
+        String[] lines = File.ReadAllLines("Inputs/input.day16.txt");
         char[,] map = new char[0, 0];
         List<Reindeer> reindeers = new List<Reindeer>();
         (int row, int column) start = new();
@@ -65,48 +65,34 @@ namespace AOC2024
                     var reindeer = reindeersToMove[i];
                     var moves = GetMoves(reindeer);
 
-                    //Can rotate -90* and move
-                    var negative90 = moves[1];
-                    if (negative90.nextCharacter == '.' && NotSeen(reindeer, negative90))
+                    foreach (var move in moves)
                     {
-                        Reindeer negativeReindeer = CopyReindeer(reindeer, negative90);
-                        reindeers.Add(negativeReindeer);
-                        seen.TryAdd(negative90.nextLocation, negativeReindeer.rotations);
-                    }
+                        if (move.direction == reindeer.direction)
+                        {
+                            if (move.nextLocation == end)
+                            {
+                                reindeer.foundEnd = true;
+                                reindeer.canMove = false;
+                                break;
+                            }
 
-                    //Can rotate +90* and move
-                    var positive90 = moves[2];
-                    if (positive90.nextCharacter == '.' && NotSeen(reindeer, positive90))
-                    {
-                        Reindeer positiveReindeer = CopyReindeer(reindeer, positive90);
-                        reindeers.Add(positiveReindeer);
-                        seen.TryAdd(positive90.nextLocation, positiveReindeer.rotations);
-                    }
-
-                    //Can move in same direction
-                    var sameDirection = moves[0];
-                    if (sameDirection.nextCharacter == 'E')
-                    {
-                        reindeer.foundEnd = true;
-                        reindeer.canMove = false;
-                        reindeer.canComplete = true;
-                        reindeer.steps++;
-                        continue;
-                    }
-
-                    reindeer.currentLocation = sameDirection.nextLocation;
-                    reindeer.canMove = sameDirection.nextCharacter == '.' && NotSeen(reindeer, sameDirection);
-                    if (sameDirection.nextCharacter == '.' && NotSeen(reindeer, sameDirection))
-                    {
-                        if (positive90.nextCharacter == '#' || negative90.nextCharacter == '#')
-                            reindeer.tileCount++;
-
-                        reindeer.steps++;
-                        seen.TryAdd(sameDirection.nextLocation, reindeer.rotations);
-                    }
-                    else
-                    {
-
+                            reindeer.currentLocation = move.nextLocation;
+                            reindeer.canMove = move.nextCharacter == '.' && NotSeen(reindeer, move);
+                            if (move.nextCharacter == '.' && NotSeen(reindeer, move))
+                            {
+                                reindeer.steps++;
+                                seen.TryAdd(move.nextLocation, reindeer.rotations);
+                            }
+                        }
+                        else
+                        {
+                            if (move.nextCharacter == '.' && NotSeen(reindeer, move))
+                            {
+                                Reindeer cloneReindeer = CopyReindeer(reindeer, move);
+                                reindeers.Add(cloneReindeer);
+                                seen.TryAdd(move.nextLocation, cloneReindeer.rotations);
+                            }
+                        }
                     }
                 }
             }
@@ -125,7 +111,6 @@ namespace AOC2024
             reindeer.locations = new HashSet<(int row, int column, int steps)>(copy.locations);
             reindeer.currentLocation = nextLocation.nextLocation;
             reindeer.rotations = copy.rotations + 1;
-            reindeer.tileCount = copy.tileCount;
 
             return reindeer;
         }
@@ -137,24 +122,24 @@ namespace AOC2024
             switch (reindeer.direction)
             {
                 case Direction.Up:
-                    moves.Add((Direction.Up, map[reindeer.currentLocation.row - 1, reindeer.currentLocation.column], (reindeer.currentLocation.row - 1, reindeer.currentLocation.column)));
                     moves.Add((Direction.Left, map[reindeer.currentLocation.row, reindeer.currentLocation.column - 1], (reindeer.currentLocation.row, reindeer.currentLocation.column - 1)));
                     moves.Add((Direction.Right, map[reindeer.currentLocation.row, reindeer.currentLocation.column + 1], (reindeer.currentLocation.row, reindeer.currentLocation.column + 1)));
+                    moves.Add((Direction.Up, map[reindeer.currentLocation.row - 1, reindeer.currentLocation.column], (reindeer.currentLocation.row - 1, reindeer.currentLocation.column)));
                     break;
                 case Direction.Right:
-                    moves.Add((Direction.Right, map[reindeer.currentLocation.row, reindeer.currentLocation.column + 1], (reindeer.currentLocation.row, reindeer.currentLocation.column + 1)));
                     moves.Add((Direction.Up, map[reindeer.currentLocation.row - 1, reindeer.currentLocation.column], (reindeer.currentLocation.row - 1, reindeer.currentLocation.column)));
                     moves.Add((Direction.Down, map[reindeer.currentLocation.row + 1, reindeer.currentLocation.column], (reindeer.currentLocation.row + 1, reindeer.currentLocation.column)));
+                    moves.Add((Direction.Right, map[reindeer.currentLocation.row, reindeer.currentLocation.column + 1], (reindeer.currentLocation.row, reindeer.currentLocation.column + 1)));
                     break;
                 case Direction.Down:
-                    moves.Add((Direction.Down, map[reindeer.currentLocation.row + 1, reindeer.currentLocation.column], (reindeer.currentLocation.row + 1, reindeer.currentLocation.column)));
                     moves.Add((Direction.Right, map[reindeer.currentLocation.row, reindeer.currentLocation.column + 1], (reindeer.currentLocation.row, reindeer.currentLocation.column + 1)));
                     moves.Add((Direction.Left, map[reindeer.currentLocation.row, reindeer.currentLocation.column - 1], (reindeer.currentLocation.row, reindeer.currentLocation.column - 1)));
+                    moves.Add((Direction.Down, map[reindeer.currentLocation.row + 1, reindeer.currentLocation.column], (reindeer.currentLocation.row + 1, reindeer.currentLocation.column)));
                     break;
                 case Direction.Left:
-                    moves.Add((Direction.Left, map[reindeer.currentLocation.row, reindeer.currentLocation.column - 1], (reindeer.currentLocation.row, reindeer.currentLocation.column - 1)));
                     moves.Add((Direction.Down, map[reindeer.currentLocation.row + 1, reindeer.currentLocation.column], (reindeer.currentLocation.row + 1, reindeer.currentLocation.column)));
                     moves.Add((Direction.Up, map[reindeer.currentLocation.row - 1, reindeer.currentLocation.column], (reindeer.currentLocation.row - 1, reindeer.currentLocation.column)));
+                    moves.Add((Direction.Left, map[reindeer.currentLocation.row, reindeer.currentLocation.column - 1], (reindeer.currentLocation.row, reindeer.currentLocation.column - 1)));
                     break;
             }
 
@@ -164,11 +149,17 @@ namespace AOC2024
         private int CalculateBestPath()
         {
             var test = reindeers.Where(x => x.foundEnd).OrderBy(x => (x.rotations * 1000) + x.steps).First();
-
+            //ColorInTheMap(test.locations.ToList());
             var pathsToAdd = reindeers.Where(x => test.locations.Contains((x.currentLocation.row, x.currentLocation.column, x.steps))).ToList();
             List<(int row, int column, int steps)> newPaths = new List<(int row, int column, int steps)>(test.locations);
             newPaths.AddRange([(start.row, start.column, 0), (end.row, end.column, 0)]);
             foreach (var path in pathsToAdd)
+            {
+                newPaths.AddRange(path.locations.ToList());
+            }
+            newPaths = newPaths.Distinct().ToList();
+            var missingPathsToAdd = reindeers.Where(x => newPaths.Contains((x.currentLocation.row, x.currentLocation.column, x.steps)));
+            foreach (var path in missingPathsToAdd)
             {
                 newPaths.AddRange(path.locations.ToList());
             }
@@ -182,18 +173,13 @@ namespace AOC2024
 
         private void ColorInTheMap(List<(int row, int column, int steps)> joins)
         {
-            
             foreach (var join in joins)
-            {
                 map[join.row, join.column] = 'O';
-            }
 
             PrintTheMap(map);
 
             foreach (var join in joins)
-            {
                 map[join.row, join.column] = '.';
-            }
         }
 
         private void PrintTheMap(char[,] mapToPrint)
@@ -222,11 +208,9 @@ namespace AOC2024
             }
         }
         internal Direction direction { get; set; } = Direction.Right;
-        internal int steps { get; set; } = 1;
+        internal int steps { get; set; } = 0;
         internal int rotations { get; set; } = 0;
-        internal bool canComplete { get; set; } = false;
         internal bool canMove { get; set; } = true;
         internal bool foundEnd { get; set; } = false;
-        internal int tileCount { get; set; } = 1;
     }
 }
