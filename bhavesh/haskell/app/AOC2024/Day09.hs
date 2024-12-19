@@ -4,56 +4,127 @@ module AOC2024.Day09
   )
 where
 
-import Data.Bifunctor qualified as BF
+import Control.Monad (forM_)
+import Control.Monad.ST (ST, runST)
 import Data.Char (digitToInt, isDigit)
 import Data.Text qualified as T
 import Data.Vector qualified as V
+import Data.Vector.Mutable qualified as MV
 
 part1 :: T.Text -> Int
-part1 input = foldr (\(i, n) acc -> acc + (n * i)) 0 numbs
+part1 input = runST $ do
+  diskmap <- parseDiskBlock input
+  reOrderDiskMap diskmap
+  MV.ifoldr (\i x acc -> acc + (getNum x * i)) 0 diskmap
   where
-    numbs = BF.second read <$> V.filter (all isDigit . snd) (V.zip (V.fromList [(0 :: Int) ..]) sortedBlock)
-    sortedBlock = reOrderDiskMap . diskMapToBlock $ parseDiskMap input
+    getNum x = if all isDigit x then read x else 0
 
 part2 :: T.Text -> Int
-part2 input = 0
-
-data DMT = File Char | Free Char deriving (Show)
-
-reOrderDiskMap :: V.Vector String -> V.Vector String
-reOrderDiskMap diskmap =
-  if isInCorrectOrder diskmap
-    then diskmap
-    else reOrderDiskMap $ doASwap (fst dotAtStart) (fst digitAtEnd) diskmap
+part2 input = getSum reOrderedDiskMap
   where
-    diskMapWithIndex = V.zip (V.fromList [(0 :: Int) ..]) diskmap
-    dotAtStart = V.head $ V.filter ((== ".") . snd) diskMapWithIndex
-    digitAtEnd = V.last $ V.filter (all isDigit . snd) diskMapWithIndex
+    reOrderedDiskMap = reOrderDiskMap' diskmap
+    diskmap = parseDiskMap input
 
-doASwap :: Int -> Int -> V.Vector String -> V.Vector String
-doASwap i j xs = left V.++ V.singleton elemJ V.++ middle V.++ V.singleton elemI V.++ right
+type MVector s = MV.MVector s String
+
+getSum :: V.Vector (Int, String) -> Int
+getSum = go 0 0
   where
-    elemI = xs V.! i
-    elemJ = xs V.! j
-    left = V.take i xs
-    middle = V.take (j - i - 1) (V.drop (i + 1) xs)
-    right = V.drop (j + 1) xs
+    xx :: Int -> Int -> String -> Int -> Int -> V.Vector (Int, String) -> (Int, Int)
+    xx rep i fid idx s dm
+      | i == rep = (idx, s)
+      | fid /= "." = xx rep (i + 1) fid (idx + 1) (s + (idx * read fid)) dm
+      | otherwise = xx rep (i + 1) fid (idx + 1) s dm
 
-isInCorrectOrder :: V.Vector String -> Bool
-isInCorrectOrder arr = (== 1) . length $ filter (elem ".") $ V.group arr
+    go :: Int -> Int -> V.Vector (Int, String) -> Int
+    go acc idx dm =
+      if null dm
+        then acc
+        else case dm V.!? 0 of
+          Nothing -> acc
+          Just (rep, fid) -> go newSum newIdx (V.tail dm)
+            where
+              (newIdx, newSum) = xx rep 0 fid idx acc dm
 
-diskMapToBlock :: V.Vector DMT -> V.Vector String
-diskMapToBlock diskmap = V.fromList $ go [] 0 diskmap
+reOrderDiskMap' :: V.Vector (Int, String) -> V.Vector (Int, String)
+reOrderDiskMap' diskmap = go ((V.length diskmap - 1) :: Int) diskmap
   where
-    go :: [[String]] -> Int -> V.Vector DMT -> [String]
-    go acc i dm
-      | null dm = concat acc
-      | otherwise = case V.head dm of
-          File x -> go (acc ++ [replicate (digitToInt x) (show i)]) (i + 1) (V.tail dm)
-          Free x -> go (acc ++ [replicate (digitToInt x) "."]) i (V.tail dm)
+    xx spcPtr (ptr, size, fid) dm =
+      if spcPtr == ptr
+        then dm
+        else case dm V.!? spcPtr of
+          Just (spcSize, spcFid) ->
+            if spcFid /= "."
+              then xx (spcPtr + 1) (ptr, size, fid) dm
+              else
+                if spcSize >= size
+                  then xx ptr (ptr, size, fid) newDm
+                  else xx (spcPtr + 1) (ptr, size, fid) dm
+            where
+              newDm = p1 V.++ p2 V.++ p3 V.++ p4 V.++ p5
+              p1 = V.take spcPtr dm
+              p2 = V.fromList [(size, fid), (spcSize - size, spcFid)]
+              p3 = V.slice (spcPtr + 1) (ptr - spcPtr - 1) dm
+              p4 = V.fromList [(size, ".")]
+              p5 = V.drop (ptr + 1) dm
+          Nothing -> dm
 
-parseDiskMap :: T.Text -> V.Vector DMT
-parseDiskMap input = go V.empty File Free (T.unpack input)
+    go ptr acc =
+      if ptr < 0
+        then acc
+        else case acc V.!? ptr of
+          Just (_, ".") -> go (ptr - 1) acc
+          Just (size, fid) -> go (ptr - 1) (xx 0 (ptr, size, fid) acc)
+          Nothing -> acc
+
+reOrderDiskMap :: MVector s -> ST s ()
+reOrderDiskMap mvec = do
+  let len = MV.length mvec
+  go 0 (len - 1)
   where
-    go acc _ _ [] = acc
-    go acc f g (x : xs) = go (acc V.++ V.singleton (f x)) g f xs
+    go focusIndex swappingIndex
+      | focusIndex >= swappingIndex = return ()
+      | otherwise = do
+          focusVal <- MV.read mvec focusIndex
+          swappingVal <- MV.read mvec swappingIndex
+          case (focusVal, swappingVal) of
+            (".", ".") -> go focusIndex (swappingIndex - 1)
+            (".", _) -> do
+              MV.swap mvec focusIndex swappingIndex
+              go (focusIndex + 1) (swappingIndex - 1)
+            _ -> go (focusIndex + 1) swappingIndex
+
+parseDiskBlock :: T.Text -> ST s (MVector s)
+parseDiskBlock input = do
+  let size = calculateSize (T.unpack input)
+  mvec <- MV.new size
+  go 0 (0 :: Int) (0 :: Int) mvec (T.unpack input)
+  return mvec
+  where
+    calculateSize :: String -> Int
+    calculateSize [] = 0
+    calculateSize (x : xs)
+      | even (length xs) = digitToInt x + calculateSize xs
+      | x == '0' = calculateSize xs
+      | otherwise = digitToInt x + calculateSize xs
+
+    go _ _ _ _ [] = return ()
+    go offset i idx mvec (x : xs)
+      | even idx = do
+          let count = digitToInt x
+          forM_ [0 .. count - 1] $ \j -> MV.write mvec (offset + j) (show i)
+          go (offset + count) (i + 1) (idx + 1) mvec xs
+      | x == '0' = go offset i (idx + 1) mvec xs
+      | otherwise = do
+          let count = digitToInt x
+          forM_ [0 .. count - 1] $ \j -> MV.write mvec (offset + j) "."
+          go (offset + count) i (idx + 1) mvec xs
+
+parseDiskMap :: T.Text -> V.Vector (Int, String)
+parseDiskMap input = V.fromList $ go [] (0 :: Int) (T.unpack input)
+  where
+    go acc _ [] = acc
+    go acc i (x : xs) =
+      if even i
+        then go (acc ++ [(digitToInt x, show (i `div` 2))]) (i + 1) xs
+        else go (acc ++ [(digitToInt x, ".")]) (i + 1) xs
