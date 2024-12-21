@@ -48,6 +48,27 @@ namespace Utilities
                 _ => throw new ArgumentException()
             };
         }
+        public static CompassDirection TurnClockwise(this CompassDirection currentDirection)
+        {
+            return currentDirection switch
+            {
+                CompassDirection.N => CompassDirection.E,
+                CompassDirection.E => CompassDirection.S,
+                CompassDirection.S => CompassDirection.W,
+                CompassDirection.W => CompassDirection.N,
+            };
+        }
+
+        public static CompassDirection TurnCounterClockwise(this CompassDirection currentDirection)
+        {
+            return currentDirection switch
+            {
+                CompassDirection.N => CompassDirection.W,
+                CompassDirection.E => CompassDirection.N,
+                CompassDirection.S => CompassDirection.E,
+                CompassDirection.W => CompassDirection.S,
+            };
+        }
 
         /// <summary>
         /// Turns a string into a list of ints. 
@@ -613,23 +634,23 @@ namespace Utilities
             return keyList;
         }
 
-        public static List<Coordinate2D> Neighbors(this Coordinate2D val, bool includeDiagonals = false)
+        public static List<Coordinate2D> Neighbors(this Coordinate2D val, bool includeDiagonals = false, int dist = 1)
         {
             var tmp = new List<Coordinate2D>()
             {
-                new(val.x - 1, val.y),
-                new(val.x + 1, val.y),
-                new(val.x, val.y - 1),
-                new(val.x, val.y + 1),
+                new(val.x - dist, val.y),
+                new(val.x + dist, val.y),
+                new(val.x, val.y - dist),
+                new(val.x, val.y + dist),
             };
             if (includeDiagonals)
             {
                 tmp.AddRange(new List<Coordinate2D>()
                 {
-                    new(val.x - 1, val.y - 1),
-                    new(val.x + 1, val.y - 1),
-                    new(val.x - 1, val.y + 1),
-                    new(val.x + 1, val.y + 1),
+                    new(val.x - dist, val.y - dist),
+                    new(val.x + dist, val.y - dist),
+                    new(val.x - dist, val.y + dist),
+                    new(val.x + dist, val.y + dist),
                 });
             }
             return tmp;
