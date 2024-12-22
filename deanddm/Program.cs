@@ -75,6 +75,10 @@ Console.WriteLine("Hello, World!");
 //day18.ExecuteDay18Part1();
 //day18.ExecuteDay18Part2();
 
-var day19 = new Day19();
-day19.ExecuteDay19Part1();
-day19.ExecuteDay19Part2();
+//var day19 = new Day19();
+//day19.ExecuteDay19Part1();
+//day19.ExecuteDay19Part2();
+
+var day20 = new Day20();
+day20.ExecuteDay20Part1();
+day20.ExecuteDay20Part2();
