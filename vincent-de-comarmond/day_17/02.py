@@ -1,20 +1,21 @@
+from functools import lru_cache
 import sys
 from typing import Callable
 
-sys.setrecursionlimit(10000)
-
 
 def get_program(filepath: str) -> dict[str, int | list[int]]:
-    result = dict()
+    res = dict()
     with open(filepath, "r") as txtin:
         for line in txtin:
             tmp = line.split(":")
             if "Register" in line:
-                result[tmp[0][-1].lower()] = int(tmp[1])
+                res[tmp[0][-1].lower()] = int(tmp[1])
 
             if "Program" in line:
-                result["program"] = tuple(map(int, tmp[1].split(",")))
-    return result
+                res["program"] = tuple(map(int, tmp[1].split(",")))
+    a, b, c = res["a"], res["b"], res["c"]
+    prog = res["program"]
+    return a, b, c, prog
 
 
 def compile_program(b: int, c: int, program: list[int]) -> Callable[[int], tuple[int]]:
@@ -97,34 +98,150 @@ def get_length_estimates(
     return _min, _max
 
 
-def get_digit_estimate(
+def get_digit_max(
     compiled_func: Callable[[int], tuple[int]],
+    estimate: int,
+    increment: int,
     target: tuple[int],
     idx: int,
+    lb: int,
+    ub: int,
+):
+    compiled = compiled_func
+    targ = target[idx:]
+    inc0 = increment
+
+    count = 0
+    while True:
+        count += 1
+        if count % 10000 == 0:
+            print(increment)
+            print(estimate)
+            count = 0
+
+        result = compiled_func(estimate)
+        increment = max(1, (increment * 99) // 100)
+        if len(result) > len(target):
+            estimate -= increment
+            continue
+        if len(result) < len(target):
+            estimate += increment
+            continue
+
+        if result[idx:] == targ and compiled(estimate + 1)[idx:] != targ:
+            break
+        if result[idx:] != targ and compiled(estimate - 1)[idx:] == targ:
+            estimate -= 1
+            break
+
+        estimate += increment if result[idx:] == targ else -increment
+        if increment == 1:
+            increment = inc0 + 1
+    return estimate
+
+
+def get_digit_min(
+    compiled_func: Callable[[int], tuple[int]],
+    estimate: int,
+    increment: int,
+    target: tuple[int],
+    idx: int,
+    lb: int,
+    ub: int,
+):
+    compiled = compiled_func
+    targ = target[idx:]
+    inc0 = increment
+
+    count = 0
+    while True:
+        count += 1
+        if count % 10000 == 0:
+            print(increment)
+            print(estimate)
+            count = 0
+
+        if estimate < lb:
+            return lb
+        if estimate > ub:
+            return ub
+
+        result = compiled_func(estimate)
+        increment = max(1, (increment * 99) // 100)
+        if len(result) > len(target):
+            estimate -= increment
+            continue
+        if len(result) < len(target):
+            estimate += increment
+            continue
+
+        if result[idx:] == targ and compiled(estimate - 1)[idx:] != targ:
+            break
+        if result[idx:] != targ and compiled(estimate + 1)[idx:] == targ:
+            estimate += 1
+            break
+
+        estimate += -increment if result[idx:] == targ else increment
+        if increment == 1:
+            increment = inc0 + 1
+    return estimate
+
+
+def solve_from_tail(
+    compiled_func: Callable[[int], tuple[int]],
+    target: tuple[int],
     _min_allowed: int,
     _max_allowed: int,
-) -> tuple[int]:
+    idx: None | int = None,
+):
 
-    if (
-        compiled_func(_min_allowed)[idx] == target[idx]
-        and compiled_func(_max_allowed)[idx] == target[idx]
-    ):
+    idx = len(target) - 1 if idx is None else idx
+    targ = target[idx]
+    compiled = compiled_func
+    min0, max0 = _min_allowed, _max_allowed
+    step = max(1, (max0 - min0) // 10)
+
+    print(f"Searching index: {idx}")
+
+    if compiled(min0)[idx] == targ and compiled(max0)[idx] == targ:
         return _min_allowed, _max_allowed
 
-    step = (_max_allowed - _min_allowed) // 100
+    for guess in range(min0, max0 + step, step):
+        result = compiled(guess)
+        if result[idx:] != target[idx:]:
+            continue
 
-    seed = None
-    for _guess in range(_min_allowed, _max_allowed + step, step):
-        result = compiled_func(_guess)
-        if result[idx] == target[idx]:
-            seed = _guess
+        _min = get_digit_min(compiled, guess, step, target, idx, min0, max0)
+        _max = get_digit_max(compiled, guess, step, target, idx, min0, max0)
 
-    
-    
-
-    _min, _max = _min_allowed, _max_allowed
+        if idx <= 0 and _max > _min:
+            return _min, _max
+        elif _max > _min:
+            soln = solve_from_tail(compiled, target, _min, _max, idx - 1)
+            if soln is not None:
+                return soln
 
 
 if __name__ == "__main__":
-    init_prog = get_program(sys.argv[1])
-    compiled = compile_program(init_prog["b"], init_prog["c"], init_prog["program"])
+    INPUT_FP = sys.argv[1]  #  "./input.txt"  # sys.argv[1]
+    a, b, c, prog = get_program(INPUT_FP)
+    compiled = lru_cache(compile_program(b, c, prog))
+
+    _min, _max = get_length_estimates(compiled, prog)
+
+    lb, ub = solve_from_tail(compiled, prog, _min, _max, len(prog) - 1)
+    print(f"Search range: {lb}-{ub} = {ub-lb}")
+    print(lb, ub)
+
+    for a in range(lb, ub + 1):
+        if a % 100000 == 0:
+            print(a)
+            print("{:.2f} %".format((a - lb) / 100000))
+
+        output = compiled(a)
+        if output == prog:
+            print(f"An input of A={a} should cause the program to recreate itself")
+            break
+
+    print(a)
+    print(",".join(map(str, compiled(a))))
