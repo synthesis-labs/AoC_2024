@@ -38,7 +38,7 @@ def load_input(txt_file) -> PuzzleData:
         down = el + width if el < len(track) - width else None
         up = el - width if el >= width else None
 
-        neighbours[el] = list(filter(None, [up, right, down, left]))
+        neighbours[el] = set(filter(None, [up, right, down, left]))
 
     return PuzzleData(end, height, neighbours, start, track, width)
 
@@ -70,7 +70,9 @@ def determine_jumpholes(
 
             sy, sx = start // width, start % width
             ey, ex = end // width, end % width
-            if abs(ey - sy) + abs(ex - sx) <= max_cheat_length + 1:
+            hamming = abs(ey - sy) + abs(ex - sx)
+            # Can't be next to each other
+            if hamming <= max_cheat_length + 1 and 1 < hamming:
                 potential_pairs.add(frozenset((start, end)))
     real_pairs = dict()
     print(f"Number potential pairs: {len(potential_pairs)}")
@@ -78,13 +80,12 @@ def determine_jumpholes(
         if idx % 100 == 0:
             print(f"Filtered {idx} of {len(potential_pairs)} potential_pairs.")
         start, end = pair
-        cheat_length = solve_optimally(
-            track, neighbours, start, end, dict(), 1000000000
-        )
-        if 0 < len(cheat_length):
-            cheat_length = min(map(len, cheat_length))
-            if cheat_length <= max_cheat_length:
-                real_pairs[pair] = cheat_length
+        cheat_route = solve_inverse_optimally(track, neighbours, start, end)
+
+        # -1 Here because the start point shouldn't be included
+        if cheat_route is not None and 0 < len(cheat_route):
+            if len(cheat_route) - 1 <= max_cheat_length:
+                real_pairs[pair] = len(cheat_route) - 1
     return real_pairs
 
 
@@ -100,14 +101,12 @@ def solve_inverse_optimally(
 
         if hist[-1] == end:
             completed.add(hist)
-            continue
+            return hist
 
         # Cannot go back on itself
-        nghs = set(neighbours[hist[-1]]) - set(hist)
+        nghs = neighbours[hist[-1]] - set(hist)
         nghs = {_ for _ in nghs if _ in (start, end) or track[_] == "#"}
         active |= {hist + (_,) for _ in nghs}
-
-    return completed
 
 
 def solve_optimally(
@@ -135,14 +134,14 @@ def solve_optimally(
 
         if pos == end:
             completed.add(hist)
-            # print(len(completed))
-            # continue
+            continue
+
+        # Cannot go back on itself
+        nghs = neighbours[pos] - {_[0] for _ in hist}
 
         additions: set[int] = set()
-        # Cannot go back on itself
-        nghs = set(neighbours[pos]) - {_[0] for _ in hist}
-
         additions = {(_, time + 1, ghosted) for _ in nghs if track[_] != "#"}
+
         if not ghosted:
             for n in nghs:
                 for k, v in jumpholes.items():
@@ -150,7 +149,6 @@ def solve_optimally(
                         continue
 
                     other = [_ for _ in k if _ != n][0]
-                    # print(f"Adding other. Neighbour: {n}, Other: {other}")
                     additions.add((other, time + v + 1, True))
 
         active |= {hist + (_,) for _ in additions}
@@ -193,5 +191,6 @@ if __name__ == "__main__":
         base_time - GOOD_CHEAT,
     )
 
-    path_counts = Counter(map(lambda _: base_time - len(_), cheat_routes))
-    pp(dict(sorted(path_counts.items())))
+    path_counts = Counter(map(lambda _: base_time - _[-1][1], cheat_routes))
+    improvements = {k: v for k, v in path_counts.items() if k != 0}
+    pp(dict(sorted(improvements.items())))
