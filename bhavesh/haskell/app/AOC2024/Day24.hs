@@ -66,17 +66,12 @@ parseWiresAndGates input = parseAoCInput input wiresAndGatesParser "wiresAndGate
   where
     boolParser = P.choice [True <$ P.string "1", False <$ P.string "0"]
     wireParser = (,) <$> (P.many1 P.alphaNum <* P.string ": ") <*> boolParser
-    gParser g tag =
-      g
-        <$> (Input <$> P.many1 P.alphaNum <* P.string tag)
-        <*> (Input <$> P.many1 P.alphaNum <* P.string " -> ")
-        <*> (Output <$> P.many1 P.alphaNum)
-    gateParser =
-      P.choice
-        [ P.try $ gParser XOR " XOR ",
-          P.try $ gParser AND " AND ",
-          P.try $ gParser OR " OR "
-        ]
+    inputParser tag = Input <$> P.many1 P.alphaNum <* P.string tag
+    outputParser = Output <$> P.many1 P.alphaNum
+    andParser = AND <$> inputParser " AND " <*> inputParser " -> " <*> outputParser
+    orParser = OR <$> inputParser " OR " <*> inputParser " -> " <*> outputParser
+    xorParser = XOR <$> inputParser " XOR " <*> inputParser " -> " <*> outputParser
+    gateParser = P.choice $ P.try <$> [andParser, orParser, xorParser]
     gatesParser = P.many1 $ gateParser <* P.optional P.newline
     wiresParser = P.many1 $ wireParser <* P.optional P.newline
     memoParser = M.fromList <$> wiresParser
