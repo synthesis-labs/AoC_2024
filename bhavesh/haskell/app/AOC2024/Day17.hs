@@ -24,8 +24,8 @@ part1 input = formatProgOutput "" programOutput
 part2 :: T.Text -> Int
 part2 input = _BruteForceFindARegister registers program initialA
   where
-    (registers, program) = parseRegistersAndProgram input
-    Registers (Register initialA) _ _ = registers
+    (Registers (Register initialA) _ _, program) = parseRegistersAndProgram input
+    registers = Registers (Register 37221270076915) (Register 0) (Register 0)
 
 newtype Register = Register Int deriving (Show)
 
