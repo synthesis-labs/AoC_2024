@@ -90,7 +90,7 @@ def seq2seq_b(
     keypad = input_keypad.value
     accum = tuple() if accum is None else accum
     if len(target_seq) == 0:
-        return accum
+        return tuple(frozenset({seq + "A" for seq in fs}) for fs in accum)
     target, rest = target_seq[0], target_seq[1:]
     next_moves = next_key(input_keypad, target, current)
     # accum.append(next_moves)
@@ -98,19 +98,13 @@ def seq2seq_b(
     return seq2seq_b(input_keypad, rest, target, accum + (frozenset(next_moves),))
 
 
-def seq2seq_optimal(
-    input_keypad: KeyPad,
-    target_sequences: tuple[set[str]],
-    current: str = "A",
-    accum: None | tuple[frozenset[str]] = None,
-):
+def part2(target_seq: str):
+
+    NUMERIC_KEYS, DIRECTION_KEYS = KeyPad.NUMERIC_KEYS, KeyPad.DIRECTION_KEYS
+    fundamental = seq2seq_b(NUMERIC_KEYS, target_seq)
 
 
-    for sequence in target_sequences:
-        
-
-
-def determine_all_possible_inputs(target_seq: str) -> set[str]:
+def part1_determine_all_inputs(target_seq: str) -> set[str]:
 
     NUMERIC_KEYS, DIRECTION_KEYS = KeyPad.NUMERIC_KEYS, KeyPad.DIRECTION_KEYS
     r1: set[str] = seq2seq(NUMERIC_KEYS, target_seq)
@@ -141,7 +135,7 @@ def determine_all_possible_inputs(target_seq: str) -> set[str]:
 
 
 def determine_input_score(target_sequence: str) -> int:
-    human_input = determine_all_possible_inputs(target_sequence)
+    human_input = part1_determine_all_inputs(target_sequence)
     numeric_code = int(target_sequence[:-1])
 
     print(f"For {target_sequence}, adding {numeric_code} * {len(human_input)}")
