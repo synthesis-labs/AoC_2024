@@ -115,7 +115,7 @@ def optimal_move_matrix(input_keypad: KeyPad) -> dict[tuple[str, str], frozenset
     :rtype: dict[tuple[str, str], frozenset[str]]
     """
 
-    matrix = dict()
+    matrix: dict[tuple[str, str], frozenset[str]] = dict()
     for start in input_keypad.value:
         if start == "NULL":
             continue
@@ -124,7 +124,20 @@ def optimal_move_matrix(input_keypad: KeyPad) -> dict[tuple[str, str], frozenset
             if end == "NULL":
                 continue
             matrix[start, end] = seq2seq(input_keypad, end, start)[0]
-    return matrix
+
+    # We can decide what the real optimal levels are by looking at future levels
+    dirs = KeyPad.DIRECTION_KEYS
+    filtered_matrix: dict[tuple[str, str], frozenset[str]] = dict()
+    for k, sequences in matrix.items():
+        seq_dict = dict()
+        for seq in sequences:
+            seq_dict[seq] = "".join([min(_, key=len) for _ in seq2seq(dirs, seq)])
+        min_seq_len = min([len(_) for _ in seq_dict.values()])
+        filtered_matrix[k] = frozenset(
+            (k for k, v in seq_dict.items() if len(v) == min_seq_len)
+        )
+
+    return matrix, filtered_matrix
 
 
 def subseq_solve(
