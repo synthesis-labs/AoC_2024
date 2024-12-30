@@ -19,6 +19,7 @@ import AOC2024.Day17 qualified as Day17
 import AOC2024.Day22 qualified as Day22
 import AOC2024.Day23 qualified as Day23
 import AOC2024.Day24 qualified as Day24
+import AOC2024.Day25 qualified as Day25
 import Model (Part (Part), Parts, errMsgParts)
 
 getParts :: Int -> Parts
@@ -40,6 +41,7 @@ getParts day =
     22 -> (Part Day22.part1, Part Day22.part2)
     23 -> (Part Day23.part1, Part Day23.part2)
     24 -> (Part Day24.part1, Part Day24.part2)
+    25 -> (Part Day25.part1, Part Day25.part2)
     _ -> errMsgParts errMsg
   where
     errMsg = "Day " <> show day <> " for 2024 has not been attempted yet"
