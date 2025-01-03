@@ -8,10 +8,10 @@ public class Day16 : BaseDay
     (Dictionary<Coordinate2D, char> map, int maxX, int maxY) map;
     private Coordinate2D Start = new Coordinate2D(0, 0);
     private Coordinate2D End = new Coordinate2D(0, 0);
-    private int Shortest = int.MaxValue;
-    private Queue<(Coordinate2D, CompassDirection, int, List<Coordinate2D>)> moves = new Queue<(Coordinate2D, CompassDirection, int, List<Coordinate2D>)>();
-    private Dictionary<(Coordinate2D, CompassDirection), int> seen = new Dictionary<(Coordinate2D, CompassDirection), int>();
-    private Dictionary<long, List<Coordinate2D>> Routes = new Dictionary<long, List<Coordinate2D>>();
+    private CompassDirection EndDir;
+    private HashSet<(Coordinate2D loc, CompassDirection dir)> Seen = new HashSet<(Coordinate2D loc, CompassDirection dir)>();
+    private Dictionary<(Coordinate2D loc, CompassDirection dir), int> Distances = new Dictionary<(Coordinate2D loc, CompassDirection dir), int>();
+
     public Day16()
     {
         _input = File.ReadAllText(InputFilePath);
@@ -20,76 +20,89 @@ public class Day16 : BaseDay
         End = map.map.First(q => q.Value == 'E').Key;
     }
 
+    private void DistanceToLoc(Coordinate2D start, Coordinate2D end)
+    {
+        Distances.Clear();
+        Seen.Clear();
+        for (var x = 0; x < map.maxX; x++)
+        {
+            for(var y = 0; y < map.maxY; y++)
+            {
+                for(var d = 0; d < 4; d++)
+                    Distances.TryAdd((new Coordinate2D(x, y), (CompassDirection)(d*90)), int.MaxValue);
+            }
+        }
+
+        var moves = new PriorityQueue<(Coordinate2D loc, CompassDirection dir), int>();
+        moves.Enqueue((start, CompassDirection.E), 0);
+        Distances[(start, CompassDirection.E)] = 0;
+
+        while (moves.TryDequeue(out var move, out var dist))
+        {
+            if (move.loc.x > -1 && move.loc.y > -1 && move.loc.x < map.maxX && move.loc.y < map.maxY)
+            {
+                if (map.map[move.loc] == '#' || Seen.Contains((move.loc, move.dir)))
+                    continue;
+
+                Seen.Add((move.loc, move.dir));
+                Distances[(move.loc, move.dir)] = dist;
+
+                if (move.loc == end)
+                {
+                    continue;
+                }
+                moves.Enqueue((move.loc.MoveDirection(move.dir), move.dir), dist + 1);
+
+                var cw = move.Item2.TurnClockwise();
+                var ccw = move.Item2.TurnCounterClockwise();
+                moves.Enqueue((move.loc, cw), dist + 1000);
+                moves.Enqueue((move.loc, ccw), dist + 1000);
+            }
+        }
+    }
+
     private string ProcessInput1()
     {
         long sum = 0;
-        //ShortestPath(Start, CompassDirection.N, 0, new List<Coordinate2D>());
-        moves.Enqueue((Start, CompassDirection.E, 0, new List<Coordinate2D>() { Start }));
-
-        while (moves.TryDequeue(out var move))
-        {
-            if(move.Item1.x > -1 &&  move.Item1.y > -1 && move.Item1.x < map.maxX && move.Item1.y < map.maxX)
-            {
-                if(move.Item3 > Shortest)
-                {
-                    continue;
-                }
-
-                if (map.map[move.Item1] == 'E')
-                {
-                    if(move.Item3 <= Shortest)
-                    {
-                        Shortest = move.Item3;
-                        if(!Routes.TryAdd(move.Item3, move.Item4))
-                        {
-                            Routes[move.Item3] = Routes[move.Item3].Union(move.Item4).Distinct().ToList();
-                        }
-                    }
-                    continue;
-                }
-
-                if (map.map[move.Item1] != '#')
-                {
-                    var movement = move.Item1.MoveDirection(move.Item2);
-                    var newlist = new List<Coordinate2D>(move.Item4);
-                    newlist.Add(movement);
-                    addIfShorter((movement, move.Item2, move.Item3 + 1, newlist));
-                }
-                var cw = move.Item2.TurnClockwise();
-                var ccw = move.Item2.TurnCounterClockwise();
-                addIfShorter((move.Item1, cw, move.Item3 + 1000, move.Item4));
-                addIfShorter((move.Item1, ccw, move.Item3 + 1000, move.Item4));
-            }
-            else
-            {
-                continue;
-            }
-        }
-
-        sum = Shortest;
+        DistanceToLoc(Start, End);
+        var EndLocs = Distances.Where(q => q.Key.loc == End).ToList();
+        sum = EndLocs.Min(q => q.Value);
+        EndDir = Distances.Single(q => q.Key.loc == End && q.Value == sum).Key.dir;
         return $"{sum}";
     }
 
-    private void addIfShorter((Coordinate2D, CompassDirection, int, List<Coordinate2D>) cur)
+    private void Visit(Coordinate2D cur, CompassDirection dir, Coordinate2D end, HashSet<(Coordinate2D loc, CompassDirection dir)> visited)
     {
-        if(!seen.TryAdd((cur.Item1, cur.Item2), cur.Item3))
+        if (visited.Contains((cur, dir)) || cur == end)
+            return;
+
+        visited.Add((cur, dir));
+
+        var possible = new List<(Coordinate2D loc, CompassDirection dir)>()
         {
-            if (seen[(cur.Item1, cur.Item2)] >= cur.Item3)
-            {
-                seen[(cur.Item1, cur.Item2)] = cur.Item3;
-                moves.Enqueue(cur);
-            }
-        }
-        else
+            (cur.MoveDirection(dir.Flip()), dir),
+            (cur, dir.TurnClockwise()),
+            (cur, dir.TurnCounterClockwise())
+        };
+
+        var canMove = possible.Where(q => Distances.ContainsKey(q) && (
+            Distances[(cur, dir)] - Distances[q] == 1 || Distances[(cur, dir)] - Distances[q] == 1000
+        )).ToList();
+
+        foreach(var move in canMove)
         {
-            moves.Enqueue(cur);
+            Visit(move.loc, move.dir, end, visited);
         }
+
     }
 
     private string ProcessInput2()
     {
-        long sum = 0; 
-        sum = Routes[Routes.Keys.Min()].Distinct().Count();
+        long sum = 0;
+        var places = new HashSet<(Coordinate2D loc, CompassDirection dir)>();
+        Visit(End, EndDir, Start, places);
+        places.Add((Start, CompassDirection.E));
+        sum = places.DistinctBy(q => q.loc).Count();
         return $"{sum}";
     }
     public override ValueTask<string> Solve_1() => new(ProcessInput1());

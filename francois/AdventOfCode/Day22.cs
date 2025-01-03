@@ -1,10 +1,12 @@
-﻿namespace AdventOfCode;
+﻿using System.Collections.Concurrent;
+
+namespace AdventOfCode;
 
 public class Day22 : BaseDay
 {
     private readonly string[] _input;
-    private List<(long, List<long>, List<long>)> secrets = new List<(long, List<long>, List<long>)>();
-    private Dictionary<string, long> sequences = new Dictionary<string, long>();
+    private ConcurrentBag<(long, List<long>)> secrets = new ConcurrentBag<(long, List<long>)>();
+    private ConcurrentDictionary<string, long> sequences = new ConcurrentDictionary<string, long>();
     private readonly long pruneval = 16777216;
 
     public Day22()
@@ -12,23 +14,23 @@ public class Day22 : BaseDay
         _input = File.ReadAllLines(InputFilePath);
         foreach(var line in _input)
         {
-            secrets.Add((long.Parse(line), new List<long>(), new List<long>()));
+            secrets.Add((long.Parse(line), new List<long>()));
         }
     }
 
     private long Step3(long cur)
     {
-        return cur * 2048;
+        return cur << 11;
     }
 
-    private long Step2(decimal cur)
+    private long Step2(long cur)
     {
-        return Convert.ToInt64(Math.Floor(cur/32));
+        return cur >> 5;
     }
 
     private long Step1(long cur)
     {
-        return cur * 64;
+        return cur << 6;
     }
 
     private long Mix(long cur, long key)
@@ -44,12 +46,13 @@ public class Day22 : BaseDay
     private string ProcessInput1()
     {
         long sum = 0;
-        foreach(var key in secrets)
+
+        Parallel.ForEach(secrets, (key) =>
         {
-            var seen = new List<string>();
+            var seen = new HashSet<string>();
             var init = key.Item1;
             var sec = key.Item1;
-            key.Item3.Add(sec % 10);
+            key.Item2.Add(sec % 10);
             for (int i = 0; i < 2000; i++)
             {
                 init = Step1(sec);
@@ -58,26 +61,27 @@ public class Day22 : BaseDay
                 sec = Prune(Mix(init, sec));
                 init = Step3(sec);
                 sec = Prune(Mix(init, sec));
-                key.Item2.Add(sec);
-                key.Item3.Add(sec % 10);
+                key.Item2.Add(sec % 10);
 
-                if(key.Item3.Count >= 5)
+                if (key.Item2.Count >= 5)
                 {
-                    var check = key.Item3.Skip(key.Item3.Count - 5).Zip(key.Item3.Skip(key.Item3.Count - 4), (a, b) => b - a);
-                    var seq = string.Join(",", check);
+                    var l1 = key.Item2.TakeLast(5);
+                    var l2 = key.Item2.TakeLast(4);
+                    var check = l1.Zip(l2, (a, b) => b - a);
+                    var seq = string.Join(',', check);
                     if (!seen.Contains(seq))
                     {
-                        if (!sequences.TryAdd(seq, key.Item3.Last()))
+                        if (!sequences.TryAdd(seq, key.Item2.Last()))
                         {
-                            sequences[seq] += key.Item3.Last();
+                            sequences[seq] += key.Item2.Last();
                         }
+
                         seen.Add(seq);
                     }
                 }
             }
-        }
-
-        sum = secrets.Sum(q => q.Item2.Last());
+            sum += sec;
+        });
         return $"{sum}";
     }
 
