@@ -287,6 +287,17 @@ namespace Utilities
             return result;
         }
 
+
+        public static IEnumerable<Coordinate2D> ManDistGroup(int distance)
+        {
+            for (int y = -distance; y <= distance; y++)
+            {
+                for (int x = Math.Abs(y) - distance; Math.Abs(x) + Math.Abs(y) <= distance; x++)
+                {
+                    yield return (x, y);
+                }
+            }
+        }
         public static int ManhattanDistance(this (int x, int y) a, (int x, int y) b)
         {
             return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
@@ -898,6 +909,10 @@ namespace Utilities
         public override string ToString()
         {
             return string.Concat("(", x, ", ", y, ")");
+        }
+        public string ToShortString()
+        {
+            return string.Concat(x, ",", y);
         }
         public void Deconstruct(out int xVal, out int yVal)
         {

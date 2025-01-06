@@ -1,34 +1,37 @@
-﻿namespace AdventOfCode;
+﻿using Utilities;
+
+namespace AdventOfCode;
 
 public class Day22 : BaseDay
 {
-    private readonly string[] _input;
-    private List<(long, List<long>, List<long>)> secrets = new List<(long, List<long>, List<long>)>();
+    private readonly string _input;
+    private Queue<long> secrets = new Queue<long>();
     private Dictionary<string, long> sequences = new Dictionary<string, long>();
     private readonly long pruneval = 16777216;
 
     public Day22()
     {
-        _input = File.ReadAllLines(InputFilePath);
-        foreach(var line in _input)
+        _input = File.ReadAllText(InputFilePath);
+        var list = _input.ToLongList("\r\n");
+        foreach(var item in list)
         {
-            secrets.Add((long.Parse(line), new List<long>(), new List<long>()));
+            secrets.Enqueue(item);
         }
     }
 
     private long Step3(long cur)
     {
-        return cur * 2048;
+        return cur << 11;
     }
 
-    private long Step2(decimal cur)
+    private long Step2(long cur)
     {
-        return Convert.ToInt64(Math.Floor(cur/32));
+        return cur >> 5;
     }
 
     private long Step1(long cur)
     {
-        return cur * 64;
+        return cur << 6;
     }
 
     private long Mix(long cur, long key)
@@ -44,13 +47,14 @@ public class Day22 : BaseDay
     private string ProcessInput1()
     {
         long sum = 0;
-        foreach(var key in secrets)
+        while(secrets.TryDequeue(out var key))
         {
-            var seen = new List<string>();
-            var init = key.Item1;
-            var sec = key.Item1;
-            key.Item3.Add(sec % 10);
-            for (int i = 0; i < 2000; i++)
+            string change = string.Empty;
+            HashSet<string> seen = new HashSet<string>();
+            var cur = key;
+            var init = key;
+            var sec = key;
+            for (int i = 1; i <= 2000; i++)
             {
                 init = Step1(sec);
                 sec = Prune(Mix(init, sec));
@@ -58,26 +62,23 @@ public class Day22 : BaseDay
                 sec = Prune(Mix(init, sec));
                 init = Step3(sec);
                 sec = Prune(Mix(init, sec));
-                key.Item2.Add(sec);
-                key.Item3.Add(sec % 10);
 
-                if(key.Item3.Count >= 5)
+                change += ((cur % 10) - (sec % 10));
+                if (i > 4 && change[0] == '-') change = change[2..];
+                else if (i > 4) change = change[1..];
+
+                cur = sec;
+
+                if(i >= 4 && seen.Add(change))
                 {
-                    var check = key.Item3.Skip(key.Item3.Count - 5).Zip(key.Item3.Skip(key.Item3.Count - 4), (a, b) => b - a);
-                    var seq = string.Join(",", check);
-                    if (!seen.Contains(seq))
+                    if(!sequences.TryAdd(change, cur % 10))
                     {
-                        if (!sequences.TryAdd(seq, key.Item3.Last()))
-                        {
-                            sequences[seq] += key.Item3.Last();
-                        }
-                        seen.Add(seq);
+                        sequences[change] += cur % 10;
                     }
                 }
             }
+            sum += sec;
         }
-
-        sum = secrets.Sum(q => q.Item2.Last());
         return $"{sum}";
     }
 
