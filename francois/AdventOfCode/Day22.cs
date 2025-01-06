@@ -5,88 +5,53 @@ namespace AdventOfCode;
 public class Day22 : BaseDay
 {
     private readonly string _input;
-    private Queue<long> secrets = new Queue<long>();
-    private Dictionary<string, long> sequences = new Dictionary<string, long>();
-    private readonly long pruneval = 16777216;
+    private List<long> secrets = new List<long>();
+    private Dictionary<int, int> sequences = new Dictionary<int, int>();
+    private readonly long pruneval = 0xFFFFFF; // 16777216-1
+    private long max = 0;
 
     public Day22()
     {
         _input = File.ReadAllText(InputFilePath);
-        var list = _input.ToLongList("\r\n");
-        foreach(var item in list)
-        {
-            secrets.Enqueue(item);
-        }
-    }
-
-    private long Step3(long cur)
-    {
-        return cur << 11;
-    }
-
-    private long Step2(long cur)
-    {
-        return cur >> 5;
-    }
-
-    private long Step1(long cur)
-    {
-        return cur << 6;
-    }
-
-    private long Mix(long cur, long key)
-    {
-        return cur ^ key;
-    }
-
-    private long Prune(long key)
-    {
-        return key % pruneval;
+        secrets = _input.ToLongList("\r\n");
     }
 
     private string ProcessInput1()
     {
         long sum = 0;
-        while(secrets.TryDequeue(out var key))
+        HashSet<int> seen = new HashSet<int>();
+        foreach (var key in secrets)
         {
-            string change = string.Empty;
-            HashSet<string> seen = new HashSet<string>();
-            var cur = key;
+            seen.Clear();
+            int change = 0;
             var init = key;
-            var sec = key;
-            for (int i = 1; i <= 2000; i++)
+            int prev = 0;
+            for (int i = 0; i < 2000; i++)
             {
-                init = Step1(sec);
-                sec = Prune(Mix(init, sec));
-                init = Step2(sec);
-                sec = Prune(Mix(init, sec));
-                init = Step3(sec);
-                sec = Prune(Mix(init, sec));
+                init = ((init << 6) ^ init) & pruneval;
+                init = ((init >> 5) ^ init) & pruneval;
+                init = ((init << 11) ^ init) & pruneval;
 
-                change += ((cur % 10) - (sec % 10));
-                if (i > 4 && change[0] == '-') change = change[2..];
-                else if (i > 4) change = change[1..];
+                var num = (int)(init % 10);
+                change = (change << 8) | (byte)(num - prev);
+                prev = num;
 
-                cur = sec;
-
-                if(i >= 4 && seen.Add(change))
+                if(i > 2 && 
+                   seen.Add(change) && 
+                   !sequences.TryAdd(change, prev))
                 {
-                    if(!sequences.TryAdd(change, cur % 10))
-                    {
-                        sequences[change] += cur % 10;
-                    }
+                    sequences[change] += prev;
+                    if (sequences[change] > max) max = sequences[change];
                 }
             }
-            sum += sec;
+            sum += init;
         }
         return $"{sum}";
     }
 
     private string ProcessInput2()
     {
-        long sum = 0;
-        sum = sequences.Values.Max();
-        return $"{sum}";
+        return $"{max}";
     }
 
 

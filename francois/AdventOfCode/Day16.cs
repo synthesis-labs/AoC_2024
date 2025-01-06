@@ -65,7 +65,7 @@ public class Day16 : BaseDay
     {
         long sum = 0;
         DistanceToLoc(Start, End);
-        var EndLocs = Distances.Where(q => q.Key.loc == End).ToList();
+        var EndLocs = Distances.Where(q => q.Key.loc == End);
         sum = EndLocs.Min(q => q.Value);
         EndDir = Distances.Single(q => q.Key.loc == End && q.Value == sum).Key.dir;
         return $"{sum}";

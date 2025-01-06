@@ -5,23 +5,26 @@ namespace AdventOfCode;
 public class Day06 : BaseDay
 {
     private readonly string[] _input;
+    private char[][] map;
     Dictionary<(int, int), CompassDirection> seenPositions = new Dictionary<(int, int), CompassDirection>();
     (int, int) startingPosition = new(0, 0);
 
     public Day06()
     {
         _input = File.ReadAllLines(InputFilePath);
-        for (var x = 0; x < _input.Length - 1; x++)
+        map = new char[_input.Length][];
+        for (var x = 0; x < _input.Length; x++)
         {
-            var y = _input[x].IndexOf('^');
-            if(y >= 0)
+            map[x] = new char[_input[x].Length];
+            for(var y = 0; y < _input[x].Length; y++)
             {
-                startingPosition = new(x, y);
-                break;
+                map[x][y] = _input[x][y];
+                if (map[x][y] == '^')
+                    startingPosition = new(x, y);
             }
         }
     }
-    private string ProcessInput1(string[] input)
+    private string ProcessInput1()
     {
         var currentDirection = CompassDirection.N;
         seenPositions.Add(startingPosition, currentDirection);
@@ -34,7 +37,7 @@ public class Day06 : BaseDay
         var reachedEdge = false;
         while (!reachedEdge)
         {
-            if (input[nextPosition.Item1][nextPosition.Item2] == '#')
+            if (map[nextPosition.Item1][nextPosition.Item2] == '#')
             {
                 nextPosition = previous;
                 currentDirection = currentDirection.Turn("cw");
@@ -47,7 +50,7 @@ public class Day06 : BaseDay
 
             nextPosition = GetNextPosition(nextPosition, currentDirection);
             
-            if(!IsValidPosition(nextPosition.Item1, nextPosition.Item2, input))
+            if(!IsValidPosition(nextPosition.Item1, nextPosition.Item2))
             {
                 reachedEdge = true;
             }
@@ -55,45 +58,46 @@ public class Day06 : BaseDay
         return $"{seenPositions.Count}";
     }
 
-    private string ProcessInput2(string[] input)
+    private string ProcessInput2()
     {
         int sum = 0;
         foreach (var position in seenPositions)
         {
             if (position.Key == startingPosition) continue;
-            if (IsLoop(position.Key.Item1, position.Key.Item2, input))
+            map[position.Key.Item1][position.Key.Item2] = '#';
+            if (IsLoop(position.Key.Item1, position.Key.Item2, map))
             {
                 sum++;
             }
+            map[position.Key.Item1][position.Key.Item2] = '.';
         }
 
         return $"{sum}";
     }
 
-    private bool IsLoop(int x, int y, string[] input)
+    private bool IsLoop(int x, int y, char[][] curmap)
     {
-        var visited = new Dictionary<(int, int, CompassDirection), char>();
+        var visited = new HashSet<(int, int, CompassDirection)>();
         var currentPosition = startingPosition;
         var currentDirection = CompassDirection.N;
         var previous = currentPosition;
 
         while (true)
         {
-            if (input[currentPosition.Item1][currentPosition.Item2] == '#' ||
-                (currentPosition.Item1 == x && currentPosition.Item2 == y))
+            if (curmap[currentPosition.Item1][currentPosition.Item2] == '#')
             {
-                if (!visited.TryAdd((previous.Item1, previous.Item2, currentDirection), input[previous.Item1][previous.Item2]))
+                if (!visited.Add((previous.Item1, previous.Item2, currentDirection)))
                     return true;
 
                 currentPosition = previous;
-                currentDirection = currentDirection.Turn("cw");
+                currentDirection = currentDirection.TurnClockwise();
             }
 
             previous = currentPosition;
 
             var nextPosition = GetNextPosition(currentPosition, currentDirection);
 
-            if (!IsValidPosition(nextPosition.Item1, nextPosition.Item2, input))
+            if (!IsValidPosition(nextPosition.Item1, nextPosition.Item2))
             {
                 return false;
             }
@@ -113,12 +117,12 @@ public class Day06 : BaseDay
         };
     }
 
-    private bool IsValidPosition(int x, int y, string[] input)
+    private bool IsValidPosition(int x, int y)
     {
-        return x > -1 && x < input.Length && y > -1 && y < input[x].Length;
+        return x > -1 && x < map.Length && y > -1 && y < map[x].Length;
     }
 
-    public override ValueTask<string> Solve_1() => new(ProcessInput1(_input));
+    public override ValueTask<string> Solve_1() => new(ProcessInput1());
 
-    public override ValueTask<string> Solve_2() => new(ProcessInput2(_input));
+    public override ValueTask<string> Solve_2() => new(ProcessInput2());
 }

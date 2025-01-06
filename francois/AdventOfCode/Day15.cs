@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Utilities;
+﻿using Utilities;
 
 namespace AdventOfCode;
 
