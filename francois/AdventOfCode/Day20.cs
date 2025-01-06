@@ -27,8 +27,7 @@ public class Day20 : BaseDay
         {
             var next = cur.Neighbors().FirstOrDefault(q => map.map[q] != '#' &&
                     !moves.ContainsKey(q));
-            count++;
-            moves[next] = count;
+            moves[next] = ++count;
             cur = next;
         }
     }
@@ -36,47 +35,35 @@ public class Day20 : BaseDay
     private string ProcessInput1()
     {
         long sum = 0;
-        foreach (Coordinate2D move in moves.Keys)
+        var group = MainUtilities.ManDistGroup(2);
+        foreach (var move in moves.Keys)
         {
-            var dist = moves.Where(q => q.Key.ManDistance(move) <= 2).ToHashSet();
-            foreach (var pos in dist)
+            foreach(var spot in group)
             {
-                if (moves.ContainsKey(pos.Key))
+                var moved = move + spot;
+                if (moves.ContainsKey(move + spot))
                 {
-                    int time = pos.Value - moves[move] - pos.Key.ManDistance(move);
+                    int time = moves[moved] - moves[move] - moved.ManDistance(move);
                     if (time >= 100) sum++;
                 }
             }
         }
-        //blocks.Aggregate((x, y) =>
-        //{
-        //    map.map[x] = '.';
-        //    map.map[y] = '.';
-        //    var test = FindShortestPath(start, end);
-        //    if (test < Shortest && Shortest - test > 101)
-        //    {
-        //        sum++;
-        //    }
-
-        //    map.map[x] = '#';
-        //    map.map[y] = '#';
-
-        //    return x;
-        //});
+        
         return $"{sum}";
     }
 
     private string ProcessInput2()
     {
         long sum = 0;
-        foreach (Coordinate2D move in moves.Keys)
+        var group = MainUtilities.ManDistGroup(20);
+        foreach (var move in moves.Keys)
         {
-            var dist = moves.Where(q => q.Key.ManDistance(move) <= 20).ToHashSet();
-            foreach (var pos in dist)
+            foreach (var spot in group)
             {
-                if (moves.ContainsKey(pos.Key))
+                var moved = move + spot;
+                if (moves.ContainsKey(move + spot))
                 {
-                    int time = pos.Value - moves[move] - pos.Key.ManDistance(move);
+                    int time = moves[moved] - moves[move] - moved.ManDistance(move);
                     if (time >= 100) sum++;
                 }
             }

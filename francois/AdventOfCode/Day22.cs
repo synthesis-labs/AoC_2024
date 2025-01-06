@@ -1,20 +1,21 @@
-﻿using System.Collections.Concurrent;
+﻿using Utilities;
 
 namespace AdventOfCode;
 
 public class Day22 : BaseDay
 {
-    private readonly string[] _input;
-    private ConcurrentBag<(long, List<long>)> secrets = new ConcurrentBag<(long, List<long>)>();
-    private ConcurrentDictionary<string, long> sequences = new ConcurrentDictionary<string, long>();
+    private readonly string _input;
+    private Queue<long> secrets = new Queue<long>();
+    private Dictionary<string, long> sequences = new Dictionary<string, long>();
     private readonly long pruneval = 16777216;
 
     public Day22()
     {
-        _input = File.ReadAllLines(InputFilePath);
-        foreach(var line in _input)
+        _input = File.ReadAllText(InputFilePath);
+        var list = _input.ToLongList("\r\n");
+        foreach(var item in list)
         {
-            secrets.Add((long.Parse(line), new List<long>()));
+            secrets.Enqueue(item);
         }
     }
 
@@ -46,14 +47,14 @@ public class Day22 : BaseDay
     private string ProcessInput1()
     {
         long sum = 0;
-
-        Parallel.ForEach(secrets, (key) =>
+        while(secrets.TryDequeue(out var key))
         {
-            var seen = new HashSet<string>();
-            var init = key.Item1;
-            var sec = key.Item1;
-            key.Item2.Add(sec % 10);
-            for (int i = 0; i < 2000; i++)
+            string change = string.Empty;
+            HashSet<string> seen = new HashSet<string>();
+            var cur = key;
+            var init = key;
+            var sec = key;
+            for (int i = 1; i <= 2000; i++)
             {
                 init = Step1(sec);
                 sec = Prune(Mix(init, sec));
@@ -61,27 +62,23 @@ public class Day22 : BaseDay
                 sec = Prune(Mix(init, sec));
                 init = Step3(sec);
                 sec = Prune(Mix(init, sec));
-                key.Item2.Add(sec % 10);
 
-                if (key.Item2.Count >= 5)
+                change += ((cur % 10) - (sec % 10));
+                if (i > 4 && change[0] == '-') change = change[2..];
+                else if (i > 4) change = change[1..];
+
+                cur = sec;
+
+                if(i >= 4 && seen.Add(change))
                 {
-                    var l1 = key.Item2.TakeLast(5);
-                    var l2 = key.Item2.TakeLast(4);
-                    var check = l1.Zip(l2, (a, b) => b - a);
-                    var seq = string.Join(',', check);
-                    if (!seen.Contains(seq))
+                    if(!sequences.TryAdd(change, cur % 10))
                     {
-                        if (!sequences.TryAdd(seq, key.Item2.Last()))
-                        {
-                            sequences[seq] += key.Item2.Last();
-                        }
-
-                        seen.Add(seq);
+                        sequences[change] += cur % 10;
                     }
                 }
             }
             sum += sec;
-        });
+        }
         return $"{sum}";
     }
 
