@@ -173,9 +173,6 @@ if __name__ == "__main__":
         low_score1,
     )
     legit_points = {(point.row, point.col) for route in winning for point in route}
-    # for r, c in legit_points:
-    #     racetrack[r, c] = "O"
-    # print_ndarray(racetrack)
 
     print(len(legit_points))
     # 531 is the right answer for part 2

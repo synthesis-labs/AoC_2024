@@ -61,3 +61,4 @@ if __name__ == "__main__":
     print(ln.rstrip())
 
     # Correct answer for part 1 is 326
+    # Correct answer for part 2 is 18,62

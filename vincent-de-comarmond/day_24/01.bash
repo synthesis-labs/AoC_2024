@@ -32,8 +32,5 @@ binary=$(typeset -p resolved |
 	cut -d = -f2 |
 	paste -s -d "")
 
-# typeset -p resolved | tr " " "\n" | grep "\[z"
-# echo "$binary"
-
 echo "$((2#$binary))"
 # 52728619468518 is the right answer for part 1
