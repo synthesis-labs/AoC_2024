@@ -5,8 +5,8 @@ namespace AdventOfCode;
 public class Day06 : BaseDay
 {
     private readonly string[] _input;
-    private char[][] map;
-    Dictionary<(int, int), CompassDirection> seenPositions = new Dictionary<(int, int), CompassDirection>();
+    private readonly char[][] map;
+    readonly Dictionary<(int, int), CompassDirection> seenPositions = [];
     (int, int) startingPosition = new(0, 0);
 
     public Day06()
@@ -40,7 +40,7 @@ public class Day06 : BaseDay
             if (map[nextPosition.Item1][nextPosition.Item2] == '#')
             {
                 nextPosition = previous;
-                currentDirection = currentDirection.Turn("cw");
+                currentDirection = currentDirection.TurnClockwise();
             }
             else
             {
@@ -61,59 +61,64 @@ public class Day06 : BaseDay
     private string ProcessInput2()
     {
         int sum = 0;
+        (int, int) prevPos = startingPosition;
+        CompassDirection prevDir = CompassDirection.N;
         foreach (var position in seenPositions)
         {
             if (position.Key == startingPosition) continue;
             map[position.Key.Item1][position.Key.Item2] = '#';
-            if (IsLoop(position.Key.Item1, position.Key.Item2, map))
+            if (IsLoop(prevPos, prevDir))
             {
                 sum++;
             }
             map[position.Key.Item1][position.Key.Item2] = '.';
+            prevPos = position.Key;
+            prevDir = position.Value;
         }
 
         return $"{sum}";
     }
 
-    private bool IsLoop(int x, int y, char[][] curmap)
+    private bool IsLoop((int, int) start, CompassDirection lastdir)
     {
-        var visited = new HashSet<(int, int, CompassDirection)>();
-        var currentPosition = startingPosition;
-        var currentDirection = CompassDirection.N;
+        var visited = new Dictionary<(int, int), int>();
+        var currentPosition = start;
+        var currentDirection = lastdir;
         var previous = currentPosition;
 
         while (true)
         {
-            if (curmap[currentPosition.Item1][currentPosition.Item2] == '#')
+            if (map[currentPosition.Item1][currentPosition.Item2] == '#')
             {
-                if (!visited.Add((previous.Item1, previous.Item2, currentDirection)))
-                    return true;
+                if(!visited.TryAdd(currentPosition, 1))
+                {
+                    if (visited[currentPosition] > 2) return true;
+                    visited[currentPosition]++;
+                }
 
                 currentPosition = previous;
                 currentDirection = currentDirection.TurnClockwise();
             }
-
+            
             previous = currentPosition;
 
-            var nextPosition = GetNextPosition(currentPosition, currentDirection);
+            currentPosition = GetNextPosition(currentPosition, currentDirection);
 
-            if (!IsValidPosition(nextPosition.Item1, nextPosition.Item2))
+            if (!IsValidPosition(currentPosition.Item1, currentPosition.Item2))
             {
                 return false;
             }
-
-            currentPosition = nextPosition;
         }
     }
 
-    private (int, int) GetNextPosition((int, int) currentPosition, CompassDirection currentDirection)
+    private static (int, int) GetNextPosition((int, int) currentPosition, CompassDirection currentDirection)
     {
         return currentDirection switch
         {
             CompassDirection.N => (currentPosition.Item1 - 1, currentPosition.Item2),
             CompassDirection.E => (currentPosition.Item1, currentPosition.Item2 + 1),
             CompassDirection.S => (currentPosition.Item1 + 1, currentPosition.Item2),
-            CompassDirection.W => (currentPosition.Item1, currentPosition.Item2 - 1)
+            CompassDirection.W => (currentPosition.Item1, currentPosition.Item2 - 1),
         };
     }
 

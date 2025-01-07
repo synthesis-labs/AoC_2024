@@ -177,7 +177,7 @@ public class Day17 : BaseDay
         long target = 0;
         for (int d = 0; d < 8; d++)
         {
-            a = test * 8 | d;
+            a = test << 3 | d;
             var i = 0;
             while (i < Operands.Count)
             {

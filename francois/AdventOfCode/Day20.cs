@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Utilities;
+﻿using Utilities;
 
 namespace AdventOfCode;
 
@@ -24,22 +23,18 @@ public class Day20 : BaseDay
     private int ReachableCoords(Coordinate2D cur, int dist)
     {
         int total = 0;
-        for(int x = -dist; x <= dist; x++)
+        for (int x = -dist; x <= dist; x++)
         {
             int remain = dist - Math.Abs(x);
-            for(int y = -remain; y <= remain; y++)
+            for (int y = -remain; y <= remain; y++)
             {
                 if (x == 0 && y == 0)
                     continue;
-
                 var newpos = (cur.x + x, cur.y + y);
-                if (IsValidPosition(newpos.Item1, newpos.Item2) && map.map[newpos] != '#')
-                {
-                    var diff = newpos.ManhattanDistance(cur);
-                    int time = moves[cur] - moves.GetValueOrDefault(newpos, int.MaxValue) - diff;
-                    if (time >= 100) total++;
-                }
-                    
+                var diff = moves.GetValueOrDefault(newpos, int.MaxValue);
+                if (diff != int.MaxValue &&
+                    moves[cur] - diff - newpos.ManhattanDistance(cur) >= 100)
+                    total++;
             }
         }
         return total;
@@ -79,11 +74,6 @@ public class Day20 : BaseDay
             sum += ReachableCoords(move, 20);
         }
         return $"{sum}";
-    }
-
-    private bool IsValidPosition(int x, int y)
-    {
-        return x > -1 && x < map.maxX && y > -1 && y < map.maxY;
     }
 
     public override ValueTask<string> Solve_1() => new(ProcessInput1());

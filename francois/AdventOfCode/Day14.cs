@@ -6,7 +6,7 @@ public class Day14 : BaseDay
 {
     List<((int, int), (int, int))> robots = new List<((int, int), (int, int))>();
     List<(int, int)> finalPos = new List<(int, int)>();
-    Dictionary<(int, int), int> robotTree = new Dictionary<(int, int), int>();
+    HashSet<(int, int)> robotTree = new HashSet<(int, int)>();
     //Dictionary<(long, long), long> Cost = new Dictionary<(long, long), long>();
     private readonly string[] _input;
     public Day14()
@@ -81,14 +81,14 @@ public class Day14 : BaseDay
 
     private string ProcessInput2()
     {
-        long sum = 0;
+        int sum = 0;
         var totalRobots = robots.Count;
         int width = 101;
         int height = 103;
         var overlap = true;
         while (overlap)
         {
-            robotTree = new Dictionary<(int, int), int>();
+            robotTree = new HashSet<(int, int)>();
             sum++;
             foreach (var robot in robots)
             {
@@ -97,7 +97,7 @@ public class Day14 : BaseDay
                 var newx = x % width < 0 ? width + x % width : x % width;
                 var newy = y % height < 0 ? height + y % height : y % height;
 
-                if (!robotTree.TryAdd((Convert.ToInt32(Math.Abs(newx)), Convert.ToInt32(Math.Abs(newy))), 1))
+                if (!robotTree.Add((Math.Abs(newx), Math.Abs(newy))))
                 {
                     break;
                 }
