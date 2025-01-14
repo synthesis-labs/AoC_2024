@@ -3,7 +3,6 @@
 public class Day13 : BaseDay
 {
     Dictionary<(long, long), List<(long, long)>> Prizes = new Dictionary<(long, long), List<(long, long)>>();
-    //Dictionary<(long, long), long> Cost = new Dictionary<(long, long), long>();
     private readonly string[] _input;
     public Day13()
     {
@@ -54,50 +53,7 @@ public class Day13 : BaseDay
             {
                 sum += (3 * check2 + check1);
             }
-            //for (var x = max; x > 0; x--)
-            //{
-            //    if((firstVal.Item1 * x) == prize.Key.Item1 && 
-            //       (firstVal.Item2 * x) == prize.Key.Item2)
-            //    {
-            //        var newCost = (x * 3);
-            //        if (!Cost.TryAdd(prize.Key, newCost))
-            //        {
-            //            if (newCost < Cost[prize.Key])
-            //                Cost[prize.Key] = newCost;
-            //        }
-            //    }
-            //    for(var y = max; y > 0; y--)
-            //    {
-            //        if ((lastVal.Item1 * y) == prize.Key.Item1 &&
-            //           (lastVal.Item2 * y) == prize.Key.Item2)
-            //        {
-            //            var newCost = (y * 1);
-            //            if (!Cost.TryAdd(prize.Key, newCost))
-            //            {
-            //                if (newCost < Cost[prize.Key])
-            //                    Cost[prize.Key] = newCost;
-            //            }
-            //        }
-            //        if ((firstVal.Item1 * x) + (lastVal.Item1 * y) == prize.Key.Item1 &&
-            //            (firstVal.Item2 * x) + (lastVal.Item2 * y) == prize.Key.Item2)
-            //        {
-            //            var newCost = (x * 3) + (y * 1);
-            //            if(!Cost.TryAdd(prize.Key, newCost))
-            //            {
-            //                if(newCost < Cost[prize.Key])
-            //                    Cost[prize.Key] = newCost;
-            //            }
-            //        }
-
-            //        if ((firstVal.Item1 * x) + (lastVal.Item1 * y) < prize.Key.Item1 ||
-            //           (firstVal.Item2 * x) + (lastVal.Item2 * y) < prize.Key.Item2)
-            //        {
-            //            break;
-            //        }
-            //    }
-            //}
         }
-        //sum = Cost.Sum(x => x.Value);
         return $"{sum}";
     }
 

@@ -70,22 +70,13 @@ public class Day23 : BaseDay
                 var intersect = comb.Intersect(temp).ToList();
                 intersect.Sort();
 
-                var temp2 = intersect.Intersect(comb).ToList();
-                comb.Clear();
-                foreach(var item in temp2)
-                {
-                    comb.Add(item);
-                }
+                comb = new HashSet<string>(intersect);
             }
 
             if(comb.Count > max)
             {
                 max = comb.Count;
-                maxcomb.Clear();
-                foreach(var item in comb)
-                {
-                    maxcomb.Add(item);
-                }
+                maxcomb = new HashSet<string>(comb);
             }
         }
         return $"{string.Join(',', maxcomb)}";

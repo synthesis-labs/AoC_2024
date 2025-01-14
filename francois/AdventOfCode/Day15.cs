@@ -6,8 +6,8 @@ public class Day15 : BaseDay
 {
     (Dictionary<Coordinate2D, char> map, int maxX, int maxY) map;
     (Dictionary<Coordinate2D, char> map, int maxX, int maxY) map2;
-    List<List<Coordinate2D>> boxesToMove = new List<List<Coordinate2D>>();
-    List<Coordinate2D> movedPositions = new List<Coordinate2D>();
+    List<List<Coordinate2D>> boxesToMove = [];
+    List<Coordinate2D> movedPositions = [];
     Queue<char> Moves = new Queue<char>();
     private readonly string movestring;
     private readonly string _input;
@@ -216,7 +216,8 @@ public class Day15 : BaseDay
                 '>' => CompassDirection.E,
                 'v' => CompassDirection.N,
                 '<' => CompassDirection.W,
-                '^' => CompassDirection.S
+                '^' => CompassDirection.S,
+                _ => throw new ArgumentException()
             };
 
             var next = cur.MoveDirection(movedir);

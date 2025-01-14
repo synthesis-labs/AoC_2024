@@ -1,48 +1,64 @@
-﻿namespace AdventOfCode;
+﻿using Utilities;
+
+namespace AdventOfCode;
 
 public class Day09 : BaseDay
 {
-    List<int> fullIterations = new List<int>();
-    List<(int, int, int)> reserved = new List<(int, int, int)>(); // id, index, length
-    List<(int, int)> freeSpace = new List<(int, int)>(); // index, length
+    int[] fullIterations = [];
+    List<(int id, int index, int length)> reserved = [];
+    List<(int index, int length)> freeSpace = [];
 
     private readonly string _input;
     public Day09()
     {
         _input = File.ReadAllText(InputFilePath);
 
-        for (var x = 1; x <= _input.Length; x += 2)
+        fullIterations = new int[_input.ToIntList().Sum()];
+
+        var ind = 0;
+        var curblock = -1;
+        for (var x = 0; x < _input.Length; x++)
         {
-            var len = Convert.ToInt32(_input[x - 1] - '0');
-            var free = x == _input.Length ? 0 : Convert.ToInt32(_input[x] - '0');
+            int c = _input[x] - '0';
+            bool space = x % 2 == 1;
 
-            reserved.Prepend((x / 2, fullIterations.Count, len));
-            freeSpace.Add((fullIterations.Count + len, free));
+            if(!space)
+            {
+                curblock++;
+                reserved.Add((curblock, ind, c));
+            }
+            else if (c != 0)
+            {
+                freeSpace.Add((ind, c));
+            }
 
-            fullIterations.AddRange(Enumerable.Repeat(x / 2, len));
-            fullIterations.AddRange(Enumerable.Repeat(-1, free));
+            for (int y = 0; y < c; y++)
+            {
+                fullIterations[ind++] = space ? -1 : curblock;
+            }
         }
     }
     private string ProcessInput1()
     {
         var fileList = new List<int>(fullIterations);
+        int start = 0;
+        int end = fullIterations.Length - 1;
         long sum = 0;
 
-        for(var x = fileList.Count - 1; x > 0; x--)
+        while (start < end)
         {
-            var cur = fileList[x];
+            if (fileList[start] != -1)
+            {
+                start++;
+                continue;
+            }
 
-            if (cur == -1) continue;
-
-            var free = fileList.IndexOf(-1);
-
-            if(free >= x) break;
-
-            fileList[free] = cur;
-            fileList[x] = -1;
+            while (fileList[end] == -1) end--;
+            fileList[start++] = fileList[end];
+            fileList[end--] = -1;
         }
 
-        for(var x = 0; x < fileList.Count; x++)
+        for (var x = 0; x < fileList.Count; x++)
         {
             if (fileList[x] == -1) break;
             sum += (x * fileList[x]);
@@ -55,23 +71,27 @@ public class Day09 : BaseDay
     {
         var fileList = new List<int>(fullIterations);
         long sum = 0;
-
-        foreach(var taken in reserved)
+        for(int z = reserved.Count -1; z >= 0; z--)
         {
-            var free = freeSpace.FirstOrDefault(q => q.Item1 < taken.Item2 && q.Item2 >= taken.Item3);
-
-            if (free == default) continue;
-
-            for(var x = 0; x < taken.Item3; x++)
+            var taken = reserved[z];
+            for(int y = 0; y < freeSpace.Count; y++)
             {
-                fileList[free.Item1 + x] = taken.Item1;
-                fileList[taken.Item2 + x] = -1;
-            }
+                var free = freeSpace[y];
+                if (free.index >= taken.index) break;
+                if (free.length < taken.length) continue;
+            
+                for (var x = 0; x < taken.length; x++)
+                {
+                    fileList[free.index + x] = taken.id;
+                    fileList[taken.index + x] = -1;
+                }
 
-            if (free.Item2 == taken.Item3)
-                freeSpace.Remove(free);
-            else
-                freeSpace[freeSpace.IndexOf(free)] = (free.Item1 + taken.Item3, free.Item2 - taken.Item3);
+                if (free.length == taken.length)
+                    freeSpace.Remove(free);
+                else
+                    freeSpace[freeSpace.IndexOf(free)] = (free.index + taken.length, free.length - taken.length);
+                break;
+            }
         }
 
         for (var x = 0; x < fileList.Count; x++)

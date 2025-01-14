@@ -5,28 +5,29 @@ namespace AdventOfCode;
 public class Day22 : BaseDay
 {
     private readonly string _input;
-    private List<long> secrets = new List<long>();
-    private Dictionary<int, int> sequences = new Dictionary<int, int>();
-    private readonly long pruneval = 0xFFFFFF; // 16777216-1
-    private long max = 0;
+    private List<int> secrets = new List<int>();
+    private ExtendedDictionary<int, int> sequences = new ExtendedDictionary<int, int>();
+    private readonly int pruneval = 0xFFFFFF; // 16777216-1
+    private int max = 0;
 
     public Day22()
     {
         _input = File.ReadAllText(InputFilePath);
-        secrets = _input.ToLongList("\r\n");
+        secrets = _input.ToIntList("\r\n");
     }
 
     private string ProcessInput1()
     {
         long sum = 0;
         HashSet<int> seen = new HashSet<int>();
-        foreach (var key in secrets)
+        for (int x = 0; x < secrets.Count; x++)
         {
             seen.Clear();
             int change = 0;
-            var init = key;
+            var init = secrets[x];
             int prev = 0;
-            for (int i = 0; i < 2000; i++)
+            int i = 0;
+            do
             {
                 init = ((init << 6) ^ init) & pruneval;
                 init = ((init >> 5) ^ init) & pruneval;
@@ -36,14 +37,16 @@ public class Day22 : BaseDay
                 change = (change << 8) | (byte)(num - prev);
                 prev = num;
 
-                if(i > 2 && 
-                   seen.Add(change) && 
-                   !sequences.TryAdd(change, prev))
+                if (i > 2 &&
+                   seen.Add(change))
                 {
                     sequences[change] += prev;
                     if (sequences[change] > max) max = sequences[change];
                 }
+                i++;
             }
+            while (i < 2000);
+            
             sum += init;
         }
         return $"{sum}";

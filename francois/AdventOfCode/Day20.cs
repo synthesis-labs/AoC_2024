@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿using System.Collections.Concurrent;
 using Utilities;
 
 namespace AdventOfCode;
@@ -7,7 +7,7 @@ public class Day20 : BaseDay
 {
     private readonly string _input;
     (Dictionary<Coordinate2D, char> map, int maxX, int maxY) map;
-    Dictionary<Coordinate2D, int> moves = new Dictionary<Coordinate2D, int>();
+    ConcurrentDictionary<Coordinate2D, int> moves = new ConcurrentDictionary<Coordinate2D, int>();
     Coordinate2D start = new Coordinate2D(0, 0);
     Coordinate2D end = new Coordinate2D(0, 0);
 
@@ -21,25 +21,20 @@ public class Day20 : BaseDay
         end = map.map.First(q => q.Value == 'E').Key;
     }
 
-    private int ReachableCoords(Coordinate2D cur, int dist)
+    private static int ReachableCoords(Coordinate2D cur, int dist, ConcurrentDictionary<Coordinate2D, int> moves)
     {
         int total = 0;
-        for(int x = -dist; x <= dist; x++)
+        for (int x = -dist; x <= dist; x++)
         {
             int remain = dist - Math.Abs(x);
-            for(int y = -remain; y <= remain; y++)
+            for (int y = -remain; y <= remain; y++)
             {
                 if (x == 0 && y == 0)
                     continue;
-
-                var newpos = (cur.x + x, cur.y + y);
-                if (IsValidPosition(newpos.Item1, newpos.Item2) && map.map[newpos] != '#')
-                {
-                    var diff = newpos.ManhattanDistance(cur);
-                    int time = moves[cur] - moves.GetValueOrDefault(newpos, int.MaxValue) - diff;
-                    if (time >= 100) total++;
-                }
-                    
+                var diff = moves.GetValueOrDefault((cur.x + x, cur.y + y), -1);
+                if (diff > 0 &&
+                    moves[cur] - diff - (cur.x + x, cur.y + y).ManhattanDistance(cur) >= 100)
+                    total++;
             }
         }
         return total;
@@ -61,29 +56,24 @@ public class Day20 : BaseDay
 
     private string ProcessInput1()
     {
-        long sum = 0;
+        ConcurrentBag<long> sum = [];
         BuildRoute();
-        foreach (var move in moves.Keys)
+        moves.Keys.AsParallel().ForAll(move =>
         {
-            sum += ReachableCoords(move, 2);
-        }
+            sum.Add(ReachableCoords(move, 2, moves));
+        });
         
-        return $"{sum}";
+        return $"{sum.Sum()}";
     }
 
     private string ProcessInput2()
     {
-        long sum = 0;
-        foreach (var move in moves.Keys)
+        ConcurrentBag<long> sum = [];
+        moves.Keys.AsParallel().ForAll(move =>
         {
-            sum += ReachableCoords(move, 20);
-        }
-        return $"{sum}";
-    }
-
-    private bool IsValidPosition(int x, int y)
-    {
-        return x > -1 && x < map.maxX && y > -1 && y < map.maxY;
+            sum.Add(ReachableCoords(move, 20, moves));
+        });
+        return $"{sum.Sum()}";
     }
 
     public override ValueTask<string> Solve_1() => new(ProcessInput1());
