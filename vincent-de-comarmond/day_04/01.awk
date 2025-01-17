@@ -13,21 +13,18 @@ END {
 		char = charmap[idx]
 		if (char == "X") {
 			split(idx, tmp, SUBSEP)
-			counts += search_mas(charmap, tmp[1], tmp[2], 0, -1)
-			counts += search_mas(charmap, tmp[1], tmp[2], 1, -1)
-			counts += search_mas(charmap, tmp[1], tmp[2], 1, 0)
-			counts += search_mas(charmap, tmp[1], tmp[2], 1, 1)
-			counts += search_mas(charmap, tmp[1], tmp[2], 0, 1)
-			counts += search_mas(charmap, tmp[1], tmp[2], -1, 1)
-			counts += search_mas(charmap, tmp[1], tmp[2], -1, 0)
-			counts += search_mas(charmap, tmp[1], tmp[2], -1, -1)
+			for (a = -1; a <= 1; a++) {
+				for (b = -1; b <= 1; b++) {
+					counts += search_mas(charmap, tmp[1], tmp[2], a, b)
+				}
+			}
 		}
 	}
 	print counts
 }
 
-# 2662 is the right answer
 
+# 2662 is the right answer
 function search_mas(charmap, i, j, dir_i, dir_j, _i, _j, _k, _search_string)
 {
 	_i = i
