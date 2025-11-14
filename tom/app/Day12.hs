@@ -1,66 +1,98 @@
-module Day12 where
-import           Control.Monad       (join)
-import           Control.Monad.State (State, get, gets, put, runState)
-import           Data.Functor        (void)
-import           Data.IORef          (IORef, modifyIORef, readIORef)
-import           Data.List           (insertBy, partition, unfoldr)
-import qualified Data.Map            as Map
-import           Data.Maybe          (fromMaybe)
-import qualified Data.Set            as Set
-import           Debug.Trace         (trace)
-import           GHC.IORef           (newIORef)
-import           Handy
-import           Text.Parsec         (anyChar, getPosition, many1, newline,
-                                      optional, sourceColumn, sourceLine)
+module Day12_2024 where
 
-type Pos = (Int, Int)
-type Grid = (Map.Map Pos Char)
+import           Control.Monad.State (State, evalState, get, modify)
+import           Data.List           (sort)
+import qualified Data.Map            as Map
+import           Data.Maybe          (fromMaybe, mapMaybe)
+import qualified Data.Set            as Set
+import           Handy
+import           Text.Parsec         hiding (State, getInput, parse)
+
+-- Wrote this originally during prep for 2025 season, and backported here
+
+type XY = (Int, Int)
+type Grid = Map.Map XY Char
+type Visited = Set.Set XY
 
 parser :: Parser Grid
-parser = Map.fromList <$> many1 (block <* optional newline)
-    where block = do
-            pos <- (,) <$> (sourceColumn <$> getPosition)
-                       <*> (sourceLine <$> getPosition)
-            c <- anyChar
-            pure (pos, c)
+parser = Map.fromList <$> many ((,) <$> xy <*> (letter <* optional newline))
+    where xy = (\p -> (sourceColumn p - 1, sourceLine p - 1)) <$> getPosition
 
-add :: (Int, Int) -> (Int, Int) -> (Int, Int)
-add (a,b) (c,d) = (a+c, b+d)
+cardinals :: XY -> [XY]
+cardinals (x,y) = [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]
 
-flood :: Grid -> Pos -> (Int, Int)
-flood grid startpos =
-    let x :: [(Int, Int)] = unfoldr (uncurry eat) (Map.toList grid, Set.singleton startpos)
-        y = foldr add (0,0) $ x
-     in y
+neighbours :: XY -> Grid -> [XY]
+neighbours (x,y) grid =
+    let typ = fromMaybe (error "BANG! Universe imploded.") $ Map.lookup (x,y) grid
+     in mapMaybe (\p -> if Map.lookup p grid == Just typ then Just p else Nothing)
+                 (cardinals (x,y))
+
+flood :: Grid -> XY -> State Visited (Set.Set XY)
+flood grid (x,y) = do
+    -- Track that we have visited this position
+    modify (Set.insert (x,y))
+    -- Recursively call ourselves until we run out of neighbours, skipping visited
+    cluster <- mapM   (\here -> do
+                visited <- get
+                if here `Set.notMember` visited
+                    then flood grid here
+                    else pure Set.empty
+            )
+            (neighbours (x,y) grid)
+    -- Add ourselves to the cluster
+    pure $ Set.insert (x,y) $ Set.unions cluster
+
+groups :: Grid -> State Visited [Set.Set XY]
+groups grid =
+    -- Flood from every position, pruning whatever we have already visited
+    mapM   (\here -> do
+                visited <- get
+                if here `Set.notMember` visited
+                    then flood grid here
+                    else pure Set.empty
+            )
+            (Map.keys grid)
+
+perimeter :: Set.Set XY -> Int
+perimeter cluster =
+    -- For each point, get the cardinals which are outside (ie on the boundary) and count them
+    sum $ length . filter (`Set.notMember` cluster) . cardinals <$> Set.toList cluster
+
+area :: Set.Set XY -> Int
+area = Set.size
+
+sides :: Set.Set XY -> Int
+sides cluster = sum $ straightLines <$> dirs
     where
-        eat :: [(Pos, Char)] -> Set.Set Pos -> Maybe ((Int, Int), ([(Pos, Char)], Set.Set Pos))
-        eat [] _          = Nothing
-        eat ((p@(px, py), c):ps) visited =  Just (
-                                                    foldr add (0,0) ([ case Map.lookup (px+dx,py+dy) grid of
-                                                        Nothing           -> (0,1)
-                                                        Just c' | c' == c -> (1,0)
-                                                        Just c'           -> (0,1)
-                                                    | (dx, dy) <- alldirs
-                                                    , (px+dx,py+dy) `Set.notMember` visited
-                                                    ]), (ps, Set.insert p visited)
-                                                )
+        dirs = [ (( 0,-1), snd, fst)  -- North: check above, group by y, runs in x
+               , (( 0, 1), snd, fst)  -- South: check below, group by y, runs in x
+               , ((-1, 0), fst, snd)  -- West:  check left,  group by x, runs in y
+               , (( 1, 0), fst, snd)  -- East:  check right, group by x, runs in y
+               ]
 
-        alldirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        straightLines ((dx,dy), grouper, extracter) =
+            let edges = filter (\(x,y) -> (x+dx,y+dy) `Set.notMember` cluster) (Set.toList cluster)
+                grouped = Map.fromListWith (++) [(grouper p, [extracter p]) | p <- edges]
+             -- count the number of straight lines in the group
+             -- e.g. [1,2,4,6] => [[1,2],[4],[6]] is 3 straight lines
+             in sum $ length . chunkBy (\a b -> b - a == 1) . sort <$> Map.elems grouped
 
-bfs :: Grid -> Char -> Pos -> (Int, Int)
-bfs grid match (px,py) =
-    let r :: (Int, Int) = foldr (\(dx,dy) acc ->
-                                    case Map.lookup (px+dx,py+dy) grid of
-                                        Nothing -> acc `add` (0, 1)
-                                        Just candidate | candidate == match -> acc `add` (1, 0) `add` bfs grid match (px+dx,py+dy)
-                                        Just candidate                      -> acc `add` (0, 1) `add` bfs grid candidate (px+dx,py+dy)
-                                ) (0,0) alldirs
-     in r
-    where
-        alldirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        -- Stolen from my 2025 handy module
+        chunkBy :: (a -> a -> Bool) -> [a] -> [[a]]
+        chunkBy _ []       = []
+        chunkBy _ [a]      = [[a]]
+        chunkBy p (a:b:xs) | p a b     = let (chunk:chunks) = chunkBy p (b:xs)
+                                          in (a:chunk):chunks -- Probably terribly inefficient and not tail recursive but i don't care (yet)
+                        | otherwise = [a] : chunkBy p (b:xs)
 
-part1 :: IO ()
+part1 :: IO Int
 part1 = do
-    grid <- parse parser <$> getInput (Example 2) 2024 12
-    let start = fromMaybe (error "?") $ Map.lookup (1,1) grid
-    putStrLn $ show $ flood grid (1,1)
+    grid <- parse parser <$> getInput Main 2024 12
+    let grps = evalState (groups grid) Set.empty
+    pure . sum . fmap ((*) <$> area <*> perimeter) $ grps
+
+part2 :: IO Int
+part2 = do
+    grid <- parse parser <$> getInput Main 2024 12
+    let grps = evalState (groups grid) Set.empty
+    pure . sum . fmap ((*) <$> area <*> sides) $ grps
