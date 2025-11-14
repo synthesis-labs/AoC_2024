@@ -59,6 +59,29 @@ We had an amazing response, which included approximately 40 people taking part:
 
 Plus a whole lot of code committed to this repository across a bunch of different languages and approaches.
 
+## Cluster Challenge: Products Cluster vs Professional Services Cluster
+
+Hi, Tjaard here. Early signs shows professional services has won! (But MickeyGee needs to review when he gets back)
+
+I summed and averaged to get to the following calcs:
+
+| Cluster               | People in Cluster | Participants | Total Score | Average Score |
+|-----------------------|-------------------|--------------|-------------|---------------|
+| Professional Services | 129               | 25           | 34621       | 1384          |
+| Products              | 67                | 12           | 7415        | 618           |
+| Other / Unknown       |                   | 3            | 4737        |               |
+
+This was a manual exercise to piece together current employee allocations, and it isn't perfect. But I tried to be fair, I promise 😉
+
+## Functional language bonus
+
+Our two top functional language solvers were:
+
+- **Vincent**, who used LISP. I'd count this as functional, especially given its prominent use in the legendary MIT book, Structure and Interpretation of Computer Programs. (A must-read for any programmer!)
+- **Bhavesh**, who used Haskell, a purely functional programming language. It's designed to enforce functional principles like immutability and first-class functions, making it a shining example of functional programming.
+
+I might just treat both of them... who knows!
+
 ## Award 1: *The Thing of Beauty*
 
 "for the cleanest and most elegant solution that makes our jaws drop"

@@ -83,6 +83,8 @@ executable advent-of-code-haskell
     AOC2024.Module
     Model
     Util.AOCHelpers
+    Util.GridUtils.Coord
+    Util.GridUtils.Grid
     Util.ParseHelpers
 
   -- LANGUAGE extensions used by modules in this package.
